@@ -45,9 +45,9 @@ def read_contents():
     return read_until(lambda buffer, _: buffer.endswith("-----"))
 
 
-# TODO: rewrite this to not consume lines (requiring seek) if the preambule is not found.
-def extract_preambule() -> Optional[str]:
-    PREAMBULE_ESCAPES = ["\r\n" * 3, "\n" * 3]
+# TODO: rewrite this to not consume lines (requiring seek) if the preamble is not found.
+def extract_preamble() -> Optional[str]:
+    PREAMBLE_ESCAPES = ["\r\n" * 3, "\n" * 3]
     lines = ""
     stream = sys.stdin
 
@@ -58,10 +58,10 @@ def extract_preambule() -> Optional[str]:
 
         lines += line
 
-        if any(lines.endswith(escape) for escape in PREAMBULE_ESCAPES):
+        if any(lines.endswith(escape) for escape in PREAMBLE_ESCAPES):
             return lines
 
-    # if we reach this point, it means we have read 10 lines without finding the end of the preambule
+    # if we reach this point, it means we have read 10 lines without finding the end of the preamble
     # we reset the stream to the beginning to not consume any lines that might be part of the actual text
     stream.seek(0)
     return None
