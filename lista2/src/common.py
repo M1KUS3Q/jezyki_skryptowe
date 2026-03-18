@@ -45,7 +45,6 @@ def read_contents():
     return read_until(lambda buffer, _: buffer.endswith("-----"))
 
 
-# TODO: rewrite this to not consume lines (requiring seek) if the preamble is not found.
 def extract_preamble() -> Optional[str]:
     PREAMBLE_ESCAPES = ["\r\n" * 3, "\n" * 3]
     lines = ""
@@ -62,6 +61,21 @@ def extract_preamble() -> Optional[str]:
             return lines
 
     # if we reach this point, it means we have read 10 lines without finding the end of the preamble
-    # we reset the stream to the beginning to not consume any lines that might be part of the actual text
-    stream.seek(0)
+    # we dynamically wrap the stream's read method to yield the consumed lines before continuing
+    original_read = stream.read
+
+    def pushback_read(size: int = -1) -> str:
+        nonlocal lines
+        if lines:
+            if size == -1 or size >= len(lines):
+                res = lines
+                lines = ""
+                return res + original_read(size - len(res) if size != -1 else -1)
+            else:
+                res = lines[:size]
+                lines = lines[size:]
+                return res
+        return original_read(size)
+
+    stream.read = pushback_read
     return None
