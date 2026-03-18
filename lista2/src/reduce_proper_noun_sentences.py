@@ -12,4 +12,7 @@ if __name__ == "__main__":
         if any(word.istitle() for word in sentence.split()[1:]):
             contain_proper_noun += 1
 
-    print(contain_proper_noun / total)
+    try:
+        print(contain_proper_noun / total)
+    except ZeroDivisionError:
+        print(0.0)

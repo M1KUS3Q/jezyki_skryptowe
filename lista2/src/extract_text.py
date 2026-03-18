@@ -6,5 +6,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 if __name__ == "__main__":
     extract_preamble()
-    text = next(read_contents())[:-5]  # remove the trailing "-----"
-    print(text)
+    try:
+        text = next(read_contents())[:-5]  # remove the trailing "-----"
+        print(text)
+    except StopIteration:
+        print("Błąd: brak wymaganego separatora w pliku.", file=sys.stderr)
