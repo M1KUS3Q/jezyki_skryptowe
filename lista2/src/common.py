@@ -35,7 +35,7 @@ def read_until(predicate: Callable[[str, str], bool], include_delimiter: bool = 
 
 
 def read_words():
-    return read_until(lambda _, char: char.isspace())
+    return read_until(lambda _, char: char.isspace() or char in ',.!?;:"()[]{}')
 
 
 def read_sentences():
