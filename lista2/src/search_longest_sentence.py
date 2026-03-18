@@ -1,4 +1,4 @@
-from common import read_sentences, read_words
+from common import read_sentences
 
 
 if __name__ == "__main__":

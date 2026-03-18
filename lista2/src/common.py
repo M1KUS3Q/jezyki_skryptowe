@@ -12,13 +12,16 @@ def read_chars():
         sys.stderr.write("I/O Error: " + str(e) + "\n")
 
 
-def read_until(predicate: Callable[[str, str], bool]):
+def read_until(predicate: Callable[[str, str], bool], include_delimiter: bool = False):
     buffer = ""
     for char in read_chars():
         should_end = predicate(buffer, char)
         if not should_end:
             buffer += char
             continue
+
+        if include_delimiter:
+            buffer += char
 
         cleaned = buffer.strip()
         if cleaned:
@@ -32,7 +35,12 @@ def read_words():
 
 
 def read_sentences():
-    return read_until(lambda _, char: char in ".!?")
+    return read_until(
+        lambda buffer, char: char in ".!?"
+        or buffer.endswith("\n\n")
+        or buffer.endswith("\r\n\r\n"),
+        include_delimiter=True,
+    )
 
 
 def read_paragraphs():
