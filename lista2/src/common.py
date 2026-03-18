@@ -41,8 +41,8 @@ def read_words():
 def read_sentences():
     return read_until(
         lambda buffer, char: char in ".!?"
-        or buffer.endswith("\n\n")
-        or buffer.endswith("\r\n\r\n"),
+        or (buffer.endswith("\n") and char == "\n")
+        or (buffer.endswith("\r\n\r") and char == "\n"),
         include_delimiter=True,
     )
 
