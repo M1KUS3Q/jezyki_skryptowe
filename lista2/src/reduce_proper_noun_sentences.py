@@ -6,5 +6,5 @@ if __name__ == "__main__":
         total += 1
         if any(word.istitle() for word in sentence.split()[1:]):
             contain_proper_noun += 1
-    
+
     print(contain_proper_noun / total)
