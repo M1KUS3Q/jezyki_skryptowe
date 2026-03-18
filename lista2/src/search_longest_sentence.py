@@ -1,5 +1,9 @@
 from common import read_sentences
 
+import sys
+
+sys.stdin.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8')
 
 if __name__ == "__main__":
     res = ""

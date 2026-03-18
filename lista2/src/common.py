@@ -1,8 +1,12 @@
 import sys
 from typing import Callable, Optional
 
+sys.stdin.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")
+
 
 def read_chars():
+
     try:
         char = sys.stdin.read(1)
         while char:
