@@ -49,7 +49,8 @@ def read_sentences():
 
 def read_paragraphs():
     return read_until(
-        lambda buffer, _: buffer.endswith("\n\n") or buffer.endswith("\r\n\r\n")
+        lambda buffer, char: (buffer.endswith("\n") and char == "\n")
+        or (buffer.endswith("\r\n\r") and char == "\n")
     )
 
 
