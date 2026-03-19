@@ -1,4 +1,4 @@
-from common import read_sentences, split_non_scalar
+from common import read_sentences, split_scalar
 
 import sys
 
@@ -9,7 +9,7 @@ if __name__ == "__main__":
     contain_proper_noun, total = 0, 0
     for sentence in read_sentences():
 
-        words = split_non_scalar(sentence)
+        words = split_scalar(sentence)
         try:
             next(words)  # Skip the first word
             total += 1

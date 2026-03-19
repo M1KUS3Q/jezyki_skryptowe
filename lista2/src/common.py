@@ -5,7 +5,7 @@ sys.stdin.reconfigure(encoding="utf-8")
 sys.stdout.reconfigure(encoding="utf-8")
 
 
-def split_non_scalar(
+def split_scalar(
     text: str,
     predicate: Callable[[str], bool] = lambda c: c.isspace() or c in ',.!?;:"()[]{}',
 ):

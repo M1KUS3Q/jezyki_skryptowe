@@ -1,4 +1,4 @@
-from common import read_sentences, split_non_scalar
+from common import read_sentences, split_scalar
 
 if __name__ == "__main__":
     CONJUNCTIONS = ["i", "oraz", "ale", "że", "lub"]
@@ -7,7 +7,7 @@ if __name__ == "__main__":
         count = 0
 
         for conjunction in CONJUNCTIONS:
-            if conjunction in split_non_scalar(sentence.lower()):
+            if conjunction in split_scalar(sentence.lower()):
                 count += 1
 
         if count >= 2:

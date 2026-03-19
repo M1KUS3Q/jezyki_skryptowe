@@ -1,4 +1,4 @@
-from common import read_sentences, split_non_scalar
+from common import read_sentences, split_scalar
 
 import sys
 
@@ -13,7 +13,7 @@ if __name__ == "__main__":
         first_letter = ""
         valid = True
 
-        for word in split_non_scalar(sentence):
+        for word in split_scalar(sentence):
             if first_letter == word[0].lower():
                 valid = False
                 break
