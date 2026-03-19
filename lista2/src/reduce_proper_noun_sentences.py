@@ -8,10 +8,13 @@ sys.stdout.reconfigure(encoding="utf-8")
 if __name__ == "__main__":
     contain_proper_noun, total = 0, 0
     for sentence in read_sentences():
-        total += 1
 
         words = split_non_scalar(sentence)
-        next(words)  # Skip the first word
+        try:
+            next(words)  # Skip the first word
+            total += 1
+        except StopIteration:
+            continue
 
         if any(word.istitle() for word in words):
             contain_proper_noun += 1

@@ -5,7 +5,21 @@ sys.stdin.reconfigure(encoding="utf-8")
 sys.stdout.reconfigure(encoding="utf-8")
 
 
-def split_non_scalar(text: str, predicate: Callable[[str], bool]):
+def split_non_scalar(
+    text: str,
+    predicate: Callable[[str], bool] = lambda c: c.isspace() or c in ',.!?;:"()[]{}',
+):
+    """
+    Splits a string into components based on a given predicate function.
+
+    Args:
+        text (str): The string to split.
+        predicate (Callable[[str], bool], optional): A function that returns True if a
+            character is a delimiter. Defaults to whitespace and common punctuation.
+
+    Yields:
+        str: The separated components of the text.
+    """
     buffer = ""
     for char in text:
         if predicate(char):
@@ -19,6 +33,12 @@ def split_non_scalar(text: str, predicate: Callable[[str], bool]):
 
 
 def read_chars():
+    """
+    Reads characters one by one from standard input.
+
+    Yields:
+        str: A single character read from standard input.
+    """
 
     try:
         char = sys.stdin.read(1)
@@ -30,6 +50,18 @@ def read_chars():
 
 
 def read_until(predicate: Callable[[str, str], bool], include_delimiter: bool = False):
+    """
+    Reads from standard input until a specified predicate condition is met.
+
+    Args:
+        predicate (Callable[[str, str], bool]): A function taking the current buffer
+            and the latest character, returning True if reading should stop.
+        include_delimiter (bool, optional): If True, includes the delimiting character
+            in the yielded string. Defaults to False.
+
+    Yields:
+        str: Strings accumulated from standard input according to the predicate.
+    """
     buffer = ""
     for char in read_chars():
         should_end = predicate(buffer, char)
