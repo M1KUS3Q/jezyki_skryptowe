@@ -5,6 +5,19 @@ sys.stdin.reconfigure(encoding="utf-8")
 sys.stdout.reconfigure(encoding="utf-8")
 
 
+def split_non_scalar(text: str, predicate: Callable[[str], bool]):
+    buffer = ""
+    for char in text:
+        if predicate(char):
+            if buffer:
+                yield buffer
+                buffer = ""
+        else:
+            buffer += char
+    if buffer:
+        yield buffer
+
+
 def read_chars():
 
     try:
