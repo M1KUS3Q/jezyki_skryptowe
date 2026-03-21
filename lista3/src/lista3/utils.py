@@ -1,6 +1,8 @@
 import sys
 from datetime import datetime, time, timezone
 
+index_status = 9
+
 def read_log():
     logs = []
 
@@ -45,6 +47,26 @@ def read_log():
     return logs
 
 
+def sort_log(log, index):
+    assert index >= 0 and index < len(log)
+
+    logs_sorted = sorted(log, key=lambda tup: tup[1])
+
+    return logs_sorted
+
+
+def get_entries_by_code(log, code):
+    filtered_logs = filter(lambda entry: entry[index_status] == code, log) 
+
+    return filtered_logs
+
+
+
+
+
 if __name__ == "__main__":
     logs = read_log()
-    print(logs[0])
+    # logs = sort_log(logs, 3)
+    logs = tuple(get_entries_by_code(logs, 200))
+    for i in range (10):
+        print(logs[i])
