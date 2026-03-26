@@ -73,12 +73,12 @@ def get_entries_by_addr(log, addr):
     validate_ip(addr)
 
     ORIG_IP_INDEX = 2
-    RESP_IP_INDEX = 4
+    HOST_INDEX = 8
     filtered_logs = filter(
-        lambda entry: entry[ORIG_IP_INDEX] == addr or entry[RESP_IP_INDEX] == addr, log
+        lambda entry: entry[ORIG_IP_INDEX] == addr or entry[HOST_INDEX] == addr, log
     )
 
-    return filtered_logs
+    return list(filtered_logs)
 
 
 def get_failed_reads(log, merge=False):
@@ -141,15 +141,16 @@ def get_top_ips(log, n=10):
 
 def get_unique_methods(log):
     METHOD_INDEX = 6
-    methods = dict()
-    for entry in log:
-        method = entry[METHOD_INDEX]
-        methods[method] = methods.get(method, 0) + 1
+    return list(set(entry[METHOD_INDEX] for entry in log))
+    # methods = dict()
+    # for entry in log:
+    #     method = entry[METHOD_INDEX]
+    #     methods[method] = methods.get(method, 0) + 1
 
-    return filter(lambda method: methods[method] == 1, methods)
+    # return filter(lambda method: methods[method] == 1, methods)
 
 
-def get_entires_in_time_range(log, start, end):
+def get_entries_in_time_range(log, start, end):
     TS_INDEX = 0
     filtered_logs = filter(lambda entry: start <= entry[TS_INDEX] <= end, log)
 
