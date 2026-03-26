@@ -48,7 +48,7 @@ def read_log():
 def sort_log(log, index):
     assert index >= 0 and index < len(log)
 
-    logs_sorted = sorted(log, key=lambda tup: tup[index])
+    logs_sorted = sorted(log, key=lambda tup: (tup[index] is None, tup[index]))
 
     return logs_sorted
 
@@ -86,11 +86,29 @@ def get_failed_reads(log, merge=False):
 
     if merge:
         # 4xx or 5xx = >= 400, no codes above 599
-        return filter(lambda entry: entry[STATUS_INDEX] >= 400, log)
+        return list(
+            filter(
+                lambda entry: entry[STATUS_INDEX] is not None
+                and entry[STATUS_INDEX] >= 400,
+                log,
+            )
+        )
     else:
         return (
-            filter(lambda entry: 400 <= entry[STATUS_INDEX] < 500, log),
-            filter(lambda entry: 500 <= entry[STATUS_INDEX] < 600, log),
+            list(
+                filter(
+                    lambda entry: entry[STATUS_INDEX] is not None
+                    and 400 <= entry[STATUS_INDEX] < 500,
+                    log,
+                )
+            ),
+            list(
+                filter(
+                    lambda entry: entry[STATUS_INDEX] is not None
+                    and 500 <= entry[STATUS_INDEX] < 600,
+                    log,
+                )
+            ),
         )
 
 
@@ -122,7 +140,7 @@ def get_top_ips(log, n=10):
 
 
 def get_unique_methods(log):
-    METHOD_INDEX = (6,)
+    METHOD_INDEX = 6
     methods = dict()
     for entry in log:
         method = entry[METHOD_INDEX]
@@ -255,6 +273,54 @@ def most_active_uid(log_dict):
             most_active = uid
 
     return most_active, max_requests
+
+
+def get_session_paths(log):
+    log_dict = log_to_dict(log)
+    session_paths = {}
+
+    for uid, entries in log_dict.items():
+        paths = []
+        for entry in entries:
+            paths.append(entry["uri"])
+        session_paths[uid] = paths
+
+    return session_paths
+
+
+def detect_sus(log, threshold):
+    ip_count = {}
+    for entry in log:
+        orig_ip = entry[2]
+        ip_count[orig_ip] = ip_count.get(orig_ip, 0) + 1
+
+    suspicious_ips = []
+    for ip, count in ip_count.items():
+        if count > threshold:
+            suspicious_ips.append(ip)
+    return suspicious_ips
+
+
+def get_extension_stats(log):
+    ext_count = {}
+    for entry in log:
+        uri = entry[8]
+        ext = uri.split("?")[0].split(".")[-1] if "." in uri else ""
+        ext_count[ext] = ext_count.get(ext, 0) + 1
+    return ext_count
+
+
+def analyze_log(log):
+    res = {}
+
+    res["top_ips"] = get_top_ips(log)
+    res["top_uris"] = get_top_uris(log)
+    res["method_counts"] = count_by_method(log)
+    res["error_count"] = len(get_failed_reads(log, merge=True))
+    res["status_class_counts"] = count_status_classes(log)
+    res["uid_count"] = len(set(entry[1] for entry in log))
+
+    return res
 
 
 if __name__ == "__main__":
