@@ -1,4 +1,5 @@
 import sys
+import pprint
 from datetime import datetime, timezone
 
 
@@ -289,17 +290,51 @@ def get_session_paths(log):
     return session_paths
 
 
-def detect_sus(log, threshold):
-    ip_count = {}
+def detect_sus(log, threshold, weights):
+    STATUS_INDEX = 9
+    REPEAT_THRESHOLD_SECONDS = 1
+
+    ip_count = {}  # ip -> count of times used
+    ips = []  # all checked ips
+    last_ts = {}  # ip -> last datetime used
+
+    sus_timestamps = {}  # ip -> count of burst-type requests
+    errors = {}  # ip -> count of 404s
+
     for entry in log:
         orig_ip = entry[2]
+        ips.append(orig_ip)
+
         ip_count[orig_ip] = ip_count.get(orig_ip, 0) + 1
 
-    suspicious_ips = []
-    for ip, count in ip_count.items():
-        if count > threshold:
-            suspicious_ips.append(ip)
-    return suspicious_ips
+        if orig_ip in last_ts:
+            diff = entry[0] - last_ts[orig_ip]
+            if diff.total_seconds() < REPEAT_THRESHOLD_SECONDS:
+                sus_timestamps[orig_ip] = sus_timestamps.get(orig_ip, 0) + 1
+
+        last_ts[orig_ip] = entry[0]
+
+        if entry[STATUS_INDEX] == 404:
+            errors[orig_ip] = errors.get(orig_ip, 0) + 1
+
+    scores = {}
+
+    for ip in ips:
+        score = (
+            weights[0] * ip_count.get(ip, 0)
+            + weights[1] * errors.get(ip, 0)
+            + weights[2] * sus_timestamps.get(ip, 0)
+        )
+
+        if score > threshold:
+            scores[ip] = {
+                "requests": ip_count.get(ip, 0),
+                "errors_404": errors.get(ip, 0),
+                "fast_retries": sus_timestamps.get(ip, 0),
+                "score": score,
+            }
+
+    return scores
 
 
 def get_extension_stats(log):
@@ -327,4 +362,4 @@ def analyze_log(log):
 if __name__ == "__main__":
     logs = read_log()
 
-    print(most_active_uid(log_to_dict(logs)))
+    pprint.pprint(detect_sus(logs, 10, weights=(1.0, 2.0, 0.5)))
