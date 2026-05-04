@@ -1,18 +1,27 @@
 import csv
 
-def parse_metadata(reader) -> dict[str, list[str]]:
-    metadata = {}
-    for _ in range(5):
-        row = next(reader, None)
-        if row and len(row) > 0:
-            metadata[row[0]] = row[1:]
-    return metadata
-
-def parse_csv(file) -> tuple[dict[str, list[str]], list[dict[str, str]]]:
+def parse_metadata(filepath) -> dict[str, list[str]]:
+    file = open(filepath, 'r', encoding='utf-8')
     reader = csv.reader(file)
     
-    metadata = parse_metadata(reader)
-        
+    headers = next(reader, [])
+    result = []
+    
+    for row in reader:
+        if not row:
+            continue
+        result.append(dict(zip(headers, row)))
+    
+    file.close()
+    return result
+
+def parse_measurements(file) -> list[dict[str, str]]:
+    reader = csv.reader(file)
+    
+    # First 5 rows contain metadata (?)
+    for _ in range(5):
+        row = next(reader, None)
+                
     # First row after metadata contains the column names (e.g., 'Kod stanowiska')
     headers = next(reader, [])
     
@@ -33,4 +42,4 @@ def parse_csv(file) -> tuple[dict[str, list[str]], list[dict[str, str]]]:
         
         data.append(dict(zip(headers, row)))
         
-    return metadata, data
+    return data
