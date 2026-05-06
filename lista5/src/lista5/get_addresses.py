@@ -1,4 +1,6 @@
+from argparse import ArgumentParser
 import csv
+from pprint import pprint
 import re
 
 
@@ -42,3 +44,15 @@ def get_addresses(filepath, city) -> list[tuple[str,str,str,int | None]]:
 
     file.close()
     return result
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("file", help="CSV file to process")
+    parser.add_argument("city", help="City to filter addresses by")
+    
+    args = parser.parse_args()
+    
+    addresses = get_addresses(args.file, args.city)
+    print(f"Addresses in {args.city}:")
+    for address in addresses:
+        pprint(address)

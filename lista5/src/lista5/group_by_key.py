@@ -1,7 +1,8 @@
+from argparse import ArgumentParser
 import os
 from pathlib import Path
+from pprint import pprint
 import re
-
 
 def group_measurement_files_by_key(dirpath: Path) -> dict[tuple[str, str, str], Path]:
     result = {}
@@ -20,3 +21,12 @@ def group_measurement_files_by_key(dirpath: Path) -> dict[tuple[str, str, str], 
                     continue
                 result[(year, quantity, freq)] = path
     return result
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("dir", help="Directory containing CSV files to group")
+    
+    args = parser.parse_args()
+    dirpath = args.dir
+    
+    pprint(group_measurement_files_by_key(Path(dirpath)))
