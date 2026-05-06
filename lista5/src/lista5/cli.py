@@ -1,69 +1,156 @@
-from argparse import ArgumentParser
-import os
-from pathlib import Path
-from pprint import pprint
+import argparse
+import logging
+import random
+import statistics
+import sys
+from datetime import datetime
 
-from lista5.group_by_key import group_measurement_files_by_key
-from lista5.parser import parse_measurements, parse_metadata
+class StdoutLogFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.levelno <= logging.WARNING
 
+def configure_logger() -> logging.Logger:
+    logger = logging.getLogger("AirQualityCLI")
+    logger.setLevel(logging.DEBUG)
 
-def cli_csv():
-    parser = ArgumentParser()
-    parser.add_argument("folderpath", help="Path to the folder containing CSV files (stacje.csv and measurements/)")
-    args = parser.parse_args()
-    
-    folderpath = Path(args.folderpath)
-    
-    stacje_filepath = folderpath / "stacje.csv"
-    measurements_folder = folderpath / "measurements"
-    
-    metadata = parse_metadata(stacje_filepath)
-    print("Metadata:")
-    pprint(metadata)
-    
-    for measurement_file in os.listdir(measurements_folder):
-        if measurement_file.endswith(".csv"):
-            with open(measurements_folder / measurement_file, "r", encoding='utf-8') as f:
-                data = parse_measurements(f)
-                print(f"\nData for {measurement_file}:")
-                for row in data[:5]:  # Print first 5 rows of data
-                    pprint(row)
-    
-    # args = parser.parse_args()
-    # file = open(args.file, "r")
-    
-    # metadata, data = parse_measurements(file)
-    # print("Metadata:")
-    # pprint(metadata)
-    
-    # print("\nData:")
-    # for row in data[:5]:  # Print first 5 rows of data
-    #     pprint(row)
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)
+    stdout_handler.addFilter(StdoutLogFilter())
+    stdout_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
 
-    # file.close()
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.ERROR)
+    stderr_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+
+    logger.addHandler(stdout_handler)
+    logger.addHandler(stderr_handler)
+
+    return logger
+
+def validate_date_format(date_string: str) -> str:
+    try:
+        datetime.strptime(date_string, "%Y-%m-%d")
+        return date_string
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Invalid date format: {date_string}. Expected YYYY-MM-DD.")
+
+def validate_measured_quantity(quantity: str) -> str:
+    valid_quantities = {"PM2.5", "PM10", "NO", "NO2", "O3", "CO", "SO2", "BENZEN"}
+    quantity_upper = quantity.upper()
+    if quantity_upper not in valid_quantities:
+        raise argparse.ArgumentTypeError(f"Unsupported quantity: {quantity}. Expected one of {valid_quantities}.")
+    return quantity_upper
+
+def execute_random_station(args: argparse.Namespace, dataset: EnvironmentalDataset, logger: logging.Logger) -> None:
+    matching_sensors = {
+        sensor_id: sensor for sensor_id, sensor in dataset.sensors.items()
+        if sensor.indicator == args.quantity and sensor.averaging_time == args.frequency
+    }
+
+    if not matching_sensors:
+        logger.warning(f"No available sensors found for '{args.quantity}' at '{args.frequency}' frequency.")
+        return
+
+    start_date = datetime.strptime(args.start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
     
-def cli_group():
-    parser = ArgumentParser()
-    parser.add_argument("dir", help="Directory containing CSV files to group")
+    active_station_ids = set()
+
+    for obs in dataset.observations:
+        if start_date <= obs.datetime <= end_date:
+            for sensor_id, value in obs.measurements.items():
+                if value is not None and sensor_id in matching_sensors:
+                    station_id = matching_sensors[sensor_id].station
+                    active_station_ids.add(station_id)
+
+    valid_stations = [sid for sid in active_station_ids if sid in dataset.stations]
+
+    if not valid_stations:
+        logger.warning("No available measurements for the specified parameters in the given time range.")
+        return
+
+    selected_station_id = random.choice(valid_stations)
+    station = dataset.stations[selected_station_id]
+
+    print(f"Station Name: {station.station_name}")
+    print(f"Address: {station.city}, {station.address}")
+
+def execute_stats(args: argparse.Namespace, dataset: EnvironmentalDataset, logger: logging.Logger) -> None:
+    target_sensor_id = None
+    for sensor_id, sensor in dataset.sensors.items():
+        if (sensor.station == args.station_code and 
+            sensor.indicator == args.quantity and 
+            sensor.averaging_time == args.frequency):
+            target_sensor_id = sensor_id
+            break
+
+    if not target_sensor_id:
+        logger.warning(f"Frequency '{args.frequency}' or quantity '{args.quantity}' is not supported by station '{args.station_code}'.")
+        return
+
+    start_date = datetime.strptime(args.start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
+    extracted_values = []
+
+    for obs in dataset.observations:
+        if start_date <= obs.datetime <= end_date:
+            val = obs.measurements.get(target_sensor_id)
+            if val is not None:
+                extracted_values.append(val)
+
+    if not extracted_values:
+        logger.warning(f"No valid measurements found for station '{args.station_code}' in the given time range.")
+        return
+
+    mean_value = statistics.mean(extracted_values)
+    std_value = statistics.stdev(extracted_values) if len(extracted_values) > 1 else 0.0
+
+    print(f"Mean: {mean_value:.2f}")
+    print(f"Standard Deviation: {std_value:.2f}")
+
+def build_cli_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Air Quality Data CLI")
     
-    args = parser.parse_args()
-    dirpath = args.dir
+    parser.add_argument("--quantity", type=validate_measured_quantity, required=True)
+    parser.add_argument("--frequency", required=True)
+    parser.add_argument("--start-date", type=validate_date_format, required=True)
+    parser.add_argument("--end-date", type=validate_date_format, required=True)
+    parser.add_argument("--measurements-dir", required=True)
+    parser.add_argument("--stations-file", required=True)
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    subparsers.add_parser("random-station")
     
-    pprint(group_measurement_files_by_key(Path(dirpath)))
+    stats_parser = subparsers.add_parser("stats")
+    stats_parser.add_argument("--station-code", required=True)
+
+    return parser
+
+def main() -> None:
+    logger = configure_logger()
+    parser = build_cli_parser()
     
-def cli_addresses():
-    parser = ArgumentParser()
-    parser.add_argument("file", help="CSV file to process")
-    parser.add_argument("city", help="City to filter addresses by")
-    
-    args = parser.parse_args()
-    
-    from lista5.get_addresses import get_addresses
-    addresses = get_addresses(args.file, args.city)
-    
-    print(f"Addresses in {args.city}:")
-    for address in addresses:
-        pprint(address)
+    try:
+        args = parser.parse_args()
+    except SystemExit as e:
+        logger.error("CLI Argument Parsing Failed.")
+        sys.exit(e.code)
+
+    try:
+        logger.info("Parsing dataset...")
+        dataset = parse_environmental_data(args.measurements_dir, args.stations_file)
+    except FileNotFoundError as e:
+        logger.error(f"Critical error: Directory or file not found: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.critical(f"Unexpected critical error during parsing: {e}")
+        sys.exit(1)
+
+    if args.command == "random-station":
+        execute_random_station(args, dataset, logger)
+    elif args.command == "stats":
+        execute_stats(args, dataset, logger)
 
 if __name__ == "__main__":
-    cli_csv()
+    main()
