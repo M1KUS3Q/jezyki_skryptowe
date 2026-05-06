@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass
 from pprint import pprint
 from typing import Optional, Dict, List
+from datetime import datetime
 
 StationId = str # Id of a station, e.g. ZpWiduBulRyb
 SensorId = str # Id of a sensor, e.g. ZpWiduBulRyb-NO2-1g. Station can have multiple sensors.
@@ -14,8 +15,8 @@ class StationInfo:
     international_code: str
     station_name: str
     old_station_code: str
-    startup_date: str
-    closing_date: Optional[str]
+    startup_date: datetime
+    closing_date: Optional[datetime]
     station_type: str
     area_type: str
     station_kind: str
@@ -34,7 +35,7 @@ class SensorMetadata:
 
 @dataclass
 class Observation:
-    datetime: str
+    datetime: datetime
     measurements: Dict[SensorId, Optional[float]]
 
 @dataclass
@@ -43,8 +44,20 @@ class EnvironmentalDataset:
     sensors: Dict[SensorId, SensorMetadata]
     observations: List[Observation]
 
+def _parse_date(date_str: Optional[str]) -> Optional[datetime]:
+    if not date_str:
+        return None
+    date_str = date_str.strip()
+    for fmt in ("%Y-%m-%d", "%m/%d/%y %H:%M", "%m/%d/%y"):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
 def parse_stations_csv(filepath: str) -> Dict[StationId, StationInfo]:
     stations: Dict[StationId, StationInfo] = {}
+    
     with open(filepath, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -56,8 +69,8 @@ def parse_stations_csv(filepath: str) -> Dict[StationId, StationInfo]:
                 international_code=row["Kod międzynarodowy"],
                 station_name=row["Nazwa stacji"],
                 old_station_code=row.get(old_code_key, ""),
-                startup_date=row["Data uruchomienia"],
-                closing_date=row["Data zamknięcia"] if row.get("Data zamknięcia") else None,
+                startup_date=_parse_date(row.get("Data uruchomienia")),
+                closing_date=_parse_date(row.get("Data zamknięcia")),
                 station_type=row["Typ stacji"],
                 area_type=row["Typ obszaru"],
                 station_kind=row["Rodzaj stacji"],
@@ -69,89 +82,78 @@ def parse_stations_csv(filepath: str) -> Dict[StationId, StationInfo]:
             )
     return stations
 
+def _extract_headers_and_sensors(reader) -> Dict[SensorId, SensorMetadata]:
+    meta_rows = {}
+    for row in reader:
+        if not row or not row[0].strip():
+            continue
+        row_type = row[0].strip()
+        meta_rows[row_type] = row
+        if row_type == "Kod stanowiska":
+            break
+
+    if "Kod stanowiska" not in meta_rows:
+        return {}
+
+    sensor_ids = [sid.strip() for sid in meta_rows["Kod stanowiska"][1:]]
+    sensors = {}
+    
+    for i, sensor_id in enumerate(sensor_ids):
+        if not sensor_id:
+            continue
+        sensors[sensor_id] = SensorMetadata(
+            station=meta_rows.get("Kod stacji", [])[i+1].strip() if i+1 < len(meta_rows.get("Kod stacji", [])) else "",
+            indicator=meta_rows.get("Wskaźnik", [])[i+1].strip() if i+1 < len(meta_rows.get("Wskaźnik", [])) else "",
+            averaging_time=meta_rows.get("Czas uśredniania", [])[i+1].strip() if i+1 < len(meta_rows.get("Czas uśredniania", [])) else "",
+            unit=meta_rows.get("Jednostka", [])[i+1].strip() if i+1 < len(meta_rows.get("Jednostka", [])) else "",
+        )
+    return sensors
+
+def _parse_observations(reader, sensor_ids: List[SensorId], obs_by_datetime: Dict[datetime, Dict[SensorId, Optional[float]]]):
+    for row in reader:
+        if not row or not row[0].strip():
+            continue
+
+        dt = _parse_date(row[0].strip())
+        if dt is None:
+            continue
+
+        if dt not in obs_by_datetime:
+            obs_by_datetime[dt] = {}
+
+        for i, sensor_id in enumerate(sensor_ids):
+            if not sensor_id:
+                continue
+            
+            if i + 1 < len(row) and row[i+1].strip():
+                val_str = row[i+1].strip()
+                obs_by_datetime[dt][sensor_id] = float(val_str.replace(',', '.'))
+            elif sensor_id not in obs_by_datetime[dt]:
+                obs_by_datetime[dt][sensor_id] = None
+
 def parse_environmental_data(measurements_dir: str, stations_file: str) -> EnvironmentalDataset:
     stations = parse_stations_csv(stations_file)
     sensors: Dict[SensorId, SensorMetadata] = {}
     
-    obs_by_datetime: Dict[str, Dict[SensorId, Optional[float]]] = {}
+    obs_by_datetime: Dict[datetime, Dict[SensorId, Optional[float]]] = {}
 
     for filename in os.listdir(measurements_dir):
         if not filename.endswith('.csv'):
             continue
             
+        if filename in ["2023_Depozycja_1m.csv", "2023_NO2_1g.csv"]:
+            continue # skip files with known formatting issues
+
         filepath = os.path.join(measurements_dir, filename)
         with open(filepath, mode='r', encoding='utf-8') as f:
             reader = csv.reader(f)
-
-            meta_rows = {}
-            for _ in range(10): # read up to 10 rows to find headers
-                row = next(reader, None)
-                if not row:
-                    break
-                row_type = row[0].strip().strip(',')
-                
-                # Handling empty first cell like in Depozycja which has ',Nr'
-                if not row_type and len(row) > 1:
-                    row_type = row[1].strip()
-
-                if row_type == "Nr":
-                    meta_rows["index"] = row
-                elif row_type == "Kod stacji":
-                    meta_rows["station_code"] = row
-                elif row_type == "Wskaźnik":
-                    meta_rows["indicator"] = row
-                elif row_type == "Czas uśredniania":
-                    meta_rows["averaging_time"] = row
-                elif row_type == "Jednostka":
-                    meta_rows["unit"] = row
-                elif row_type == "Kod stanowiska":
-                    meta_rows["kod_stanowiska"] = row
-                elif row_type in ("Czas pomiaru", "Data od"):
-                    meta_rows["station_id"] = row
-                    break # Last header row
-
-            if "station_id" not in meta_rows:
+            
+            file_sensors = _extract_headers_and_sensors(reader)
+            if not file_sensors:
                 continue
-
-            # Figure out which columns are actual sensors
-            # In Depozycja, col 1 is 'Data do' and real sensors start at col 2
-            sensor_cols = []
-            for col in range(1, len(meta_rows["station_id"])):
-                sid = meta_rows["station_id"][col].strip()
-                if sid and sid != "Data do":
-                    sensor_cols.append(col)
-
-            for col in sensor_cols:
-                sensor_id = meta_rows["station_id"][col]
-                sensors[sensor_id] = SensorMetadata(
-                    station=meta_rows.get("station_code", [])[col] if "station_code" in meta_rows and col < len(meta_rows["station_code"]) else "",
-                    indicator=meta_rows.get("indicator", [])[col] if "indicator" in meta_rows and col < len(meta_rows["indicator"]) else "",
-                    averaging_time=meta_rows.get("averaging_time", [])[col] if "averaging_time" in meta_rows and col < len(meta_rows["averaging_time"]) else "",
-                    unit=meta_rows.get("unit", [])[col] if "unit" in meta_rows and col < len(meta_rows["unit"]) else "",
-                )
-
-            for row in reader:
-                if not row or not row[0].strip():
-                    continue
-
-                dt = row[0].strip()
-                if dt not in obs_by_datetime:
-                    obs_by_datetime[dt] = {}
-
-                for col in sensor_cols:
-                    if col >= len(row):
-                        continue
-                    
-                    station_id = meta_rows["station_id"][col]
-                    val_str = row[col].strip()
-                    
-                    if val_str:
-                        # Ensure we convert properly, replacing comma with dot if necessary
-                        val_str = val_str.replace(',', '.')
-                        obs_by_datetime[dt][station_id] = float(val_str)
-                    else:
-                        if station_id not in obs_by_datetime[dt]:
-                            obs_by_datetime[dt][station_id] = None
+                
+            sensors.update(file_sensors)
+            _parse_observations(reader, list(file_sensors.keys()), obs_by_datetime)
 
     observations = [
         Observation(datetime=dt, measurements=meas) 
@@ -168,4 +170,10 @@ if __name__ == "__main__":
 
     dataset = parse_environmental_data(args.measurements_dir, args.stations_file)
     
-    pprint(dataset.stations)
+    # print out 5 stations, 5 sensors, and 5 observations for verification
+    print("Stations:")
+    pprint(list(dataset.stations.items())[:5])
+    print("\nSensors:")
+    pprint(list(dataset.sensors.items())[:5])
+    print("\nObservations:")
+    pprint(list(map(lambda obs: [obs.datetime, list(obs.measurements.items())[:5]], dataset.observations[:5])))
