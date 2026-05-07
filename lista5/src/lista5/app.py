@@ -8,8 +8,6 @@ import typer
 
 from lista5.parser import EnvironmentalDataset, parse_environmental_data
 
-# import structures and logic from your existing parser file
-
 app = typer.Typer(help="environmental data analysis cli tool")
 
 class MeasuredQuantity(Enum):
@@ -48,12 +46,12 @@ def setup_logger() -> logging.Logger:
 @app.callback()
 def load_global_state(
     ctx: typer.Context,
-    quantity: MeasuredQuantity = typer.Option(..., help="pollutant indicator to analyze"),
-    frequency: str = typer.Option(..., help="sensor averaging time, e.g., 1g, 24g"),
-    start_date: datetime = typer.Option(..., formats=["%Y-%m-%d"], help="filter start date"),
-    end_date: datetime = typer.Option(..., formats=["%Y-%m-%d"], help="filter end date"),
-    measurements_dir: str = typer.Option(..., help="path to directory with measurements"),
-    stations_file: str = typer.Option(..., help="path to stations metadata file")
+    quantity: MeasuredQuantity = typer.Option(MeasuredQuantity["pm10"], help="pollutant indicator to analyze"),
+    frequency: str = typer.Option("24g", help="sensor averaging time, e.g., 1g, 24g"),
+    start_date: datetime = typer.Option("2023-01-01", formats=["%Y-%m-%d"], help="filter start date"),
+    end_date: datetime = typer.Option("2023-05-01", formats=["%Y-%m-%d"], help="filter end date"),
+    measurements_dir: str = typer.Option("data/measurements", help="path to directory with measurements"),
+    stations_file: str = typer.Option("data/stacje.csv", help="path to stations metadata file")
 ):
     # execute once before any subcommand
     logger = setup_logger()
@@ -119,7 +117,7 @@ def print_random_active_station(ctx: typer.Context):
 @app.command("stats")
 def print_station_statistics(
     ctx: typer.Context,
-    station_code: str = typer.Option(..., help="international code of target station")
+    station_code: str = typer.Option("DsGlogWiStwo", help="international code of target station")
 ):
     # unpack injected state
     state = ctx.obj
