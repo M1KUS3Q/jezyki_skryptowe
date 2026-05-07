@@ -5,6 +5,8 @@ import statistics
 import sys
 from datetime import datetime
 
+from lista5.parser import EnvironmentalDataset, parse_environmental_data
+
 class StdoutLogFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         return record.levelno <= logging.WARNING
