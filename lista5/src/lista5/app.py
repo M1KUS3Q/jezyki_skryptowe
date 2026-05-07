@@ -6,12 +6,13 @@ from datetime import datetime
 from enum import Enum
 import typer
 
+from lista5.parser import EnvironmentalDataset, parse_environmental_data
+
 # import structures and logic from your existing parser file
-from parser_module import EnvironmentalDataset, parse_environmental_data
 
 app = typer.Typer(help="environmental data analysis cli tool")
 
-class MeasuredQuantity(str, Enum):
+class MeasuredQuantity(Enum):
     pm25 = "PM2.5"
     pm10 = "PM10"
     no = "NO"
