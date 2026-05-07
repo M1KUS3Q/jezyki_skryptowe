@@ -113,19 +113,19 @@ def execute_stats(args: argparse.Namespace, dataset: EnvironmentalDataset, logge
 def build_cli_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Air Quality Data CLI")
     
-    parser.add_argument("--quantity", type=validate_measured_quantity, required=True)
-    parser.add_argument("--frequency", required=True)
-    parser.add_argument("--start-date", type=validate_date_format, required=True)
-    parser.add_argument("--end-date", type=validate_date_format, required=True)
-    parser.add_argument("--measurements-dir", required=True)
-    parser.add_argument("--stations-file", required=True)
+    parser.add_argument("--quantity", type=validate_measured_quantity, default="pm10")
+    parser.add_argument("--frequency", default="24g")
+    parser.add_argument("--start-date", type=validate_date_format, default="2023-01-01")
+    parser.add_argument("--end-date", type=validate_date_format, default="2023-05-01")
+    parser.add_argument("--measurements-dir", default="data/measurements")
+    parser.add_argument("--stations-file", default="data/stacje.csv")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("random-station")
     
     stats_parser = subparsers.add_parser("stats")
-    stats_parser.add_argument("--station-code", required=True)
+    stats_parser.add_argument("--station-code", default="DsGlogWiStwo")
 
     return parser
 
