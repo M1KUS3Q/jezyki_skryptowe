@@ -1,5 +1,6 @@
 import argparse
 import logging
+from pprint import pprint
 import random
 import statistics
 import sys
@@ -77,6 +78,44 @@ def execute_random_station(args: argparse.Namespace, dataset: EnvironmentalDatas
     print(f"Station Name: {station.station_name}")
     print(f"Address: {station.city}, {station.address}")
 
+def execute_worst_station(args: argparse.Namespace, dataset: EnvironmentalDataset, logger: logging.Logger) -> None:
+    matching_sensors = {
+        sensor_id: sensor for sensor_id, sensor in dataset.sensors.items()
+        if sensor.indicator == args.quantity and sensor.averaging_time == args.frequency
+    }
+    
+    if not matching_sensors:
+        logger.warning(f"No available sensors found for '{args.quantity}' at '{args.frequency}' frequency.")
+        return
+    
+    start_date = datetime.strptime(args.start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
+    
+    station_total = {}
+    for obs in dataset.observations:
+        if obs.datetime > end_date or obs.datetime < start_date:
+            continue
+        
+        for sid, measurement in obs.measurements.items():
+            if sid not in matching_sensors.keys():
+                continue
+            
+            station = dataset.sensors[sid].station
+            if station not in station_total.keys():
+                station_total[station] = []
+            
+            if measurement is not None:
+                station_total[station].append(measurement)
+    
+    station_total = { k: statistics.mean(v) for k,v in station_total.items() }
+    
+    if len(station_total.keys()) == 0:
+        print("No data found")
+        return
+    
+    max_station = max(station_total, key=lambda k: station_total[k])
+    print(max_station, station_total[max_station])
+
 def execute_stats(args: argparse.Namespace, dataset: EnvironmentalDataset, logger: logging.Logger) -> None:
     target_sensor_id = None
     for sensor_id, sensor in dataset.sensors.items():
@@ -123,6 +162,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("random-station")
+    subparsers.add_parser("worst-station")
     
     stats_parser = subparsers.add_parser("stats")
     stats_parser.add_argument("--station-code", default="DsGlogWiStwo")
@@ -153,6 +193,9 @@ def main() -> None:
         execute_random_station(args, dataset, logger)
     elif args.command == "stats":
         execute_stats(args, dataset, logger)
+    elif args.command == "worst-station":
+        execute_worst_station(args,dataset,logger)
+        
 
 if __name__ == "__main__":
     main()
