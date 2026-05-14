@@ -2,8 +2,7 @@ from lista5.time_series import TimeSeries
 from lista5.validator import Anomaly, SeriesValidator
 
 class OutlierDetector(SeriesValidator):    
-    def __init__(self, max_stdevs_from_mean: float):
-        self.max_stdevs_from_mean = max_stdevs_from_mean
+    max_stdevs_from_mean: float = 5
     
     def analyze(self, series: TimeSeries) -> list[Anomaly]:
         mean = series.mean
@@ -13,6 +12,6 @@ class OutlierDetector(SeriesValidator):
             if series.values[i] is None:
                 continue
             
-            if abs(series.values[i] - mean) > self.max_stdevs_from_mean * stdev:
+            if abs(series.values[i] - mean) > OutlierDetector.max_stdevs_from_mean * stdev:
                 anomalies.append(f"Outlier at index {i}: {series.values[i]}")
         return anomalies
