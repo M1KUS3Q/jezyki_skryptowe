@@ -3,12 +3,13 @@ import statistics
 
 # Measurements of one indicator for one station
 class TimeSeries:
-    indicator: str
-    averaging_time: str
-    unit: str
-    station_code: str
-    dates = []
-    values = []
+    def __init__(self):
+        self.indicator = ""
+        self.averaging_time = ""
+        self.unit = ""
+        self.station_code = ""
+        self.dates = []
+        self.values = []
     
     @property
     def mean(self):        

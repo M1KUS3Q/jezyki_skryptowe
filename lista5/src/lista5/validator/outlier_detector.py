@@ -1,9 +1,7 @@
 from lista5.time_series import TimeSeries
 from lista5.validator import Anomaly, SeriesValidator
 
-class OutlierDetector(SeriesValidator):
-    max_stdevs_from_mean: float
-    
+class OutlierDetector(SeriesValidator):    
     def __init__(self, max_stdevs_from_mean: float):
         self.max_stdevs_from_mean = max_stdevs_from_mean
     

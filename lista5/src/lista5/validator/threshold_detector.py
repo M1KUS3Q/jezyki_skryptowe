@@ -4,8 +4,6 @@ from lista5.validator import SeriesValidator, Anomaly
 
 
 class ThresholdDetector(SeriesValidator):
-    threshold: float
-    
     def __init__(self, threshold: float):
         self.threshold = threshold
 

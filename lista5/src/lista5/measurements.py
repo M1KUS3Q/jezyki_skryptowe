@@ -11,13 +11,10 @@ type Quantity = str
 type StationCode = str
 
 class Measurements:
-    path: Path
-    total_series_count = -1
-    paths_by_quantity: dict[Quantity, list[Path | dict[StationCode, TimeSeries]]] = {}
-
     def __init__(self, path):
-        self.path = Path(path)
-        self.paths_by_quantity = {}
+        self.path: Path = Path(path)
+        self.paths_by_quantity: dict[Quantity, list[Path | dict[StationCode, TimeSeries]]] = {}
+        self.total_series_count = -1
 
         pattern = r'\d{4}_([^_]+)_(?:1g|24g)\.csv'
 
@@ -34,7 +31,6 @@ class Measurements:
                 if quantity not in self.paths_by_quantity:
                     self.paths_by_quantity[quantity] = []
                 self.paths_by_quantity[quantity].append(self.path / filename)
-
 
     def __len__(self):
         if self.total_series_count == -1:
@@ -178,7 +174,7 @@ class Measurements:
     def detect_all_anomalies(self, validators: list[SeriesValidator], preload: bool = False) -> dict[tuple[StationCode, Quantity], list[Anomaly]]:
         if preload:
             self._preload()
-
+            
         anomalies: dict[tuple[StationCode, Quantity], list[Anomaly]] = {}
         for quantity, cache in self.paths_by_quantity.items():
             for series_by_station in cache:

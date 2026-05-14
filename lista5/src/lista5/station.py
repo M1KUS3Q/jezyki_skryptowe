@@ -2,26 +2,11 @@ from datetime import datetime
 from typing import Optional
 
 
-class Station:
-    station_code: str
-    number: int
-    international_code: str
-    station_name: str
-    old_station_code: str
-    startup_date: datetime
-    closing_date: Optional[datetime]
-    station_type: str
-    area_type: str
-    station_kind: str
-    voivodeship: str
-    city: str
-    address: str
-    latitude_n: float
-    longitude_e: float
-    
+class Station:    
     def __init__(self, station_code: str, number: int, international_code: str, station_name: str, old_station_code: str,
                  startup_date: datetime, closing_date: Optional[datetime], station_type: str, area_type: str,
                  station_kind: str, voivodeship: str, city: str, address: str, latitude_n: float, longitude_e: float):
+        
         self.station_code = station_code
         self.number = number
         self.international_code = international_code
