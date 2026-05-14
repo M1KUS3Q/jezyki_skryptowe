@@ -6,6 +6,7 @@ class TimeSeries:
     indicator: str
     averaging_time: str
     unit: str
+    station_code: str
     dates = []
     values = []
     
@@ -13,13 +14,13 @@ class TimeSeries:
     def mean(self):        
         if not self.values:
             return None
-        return sum(self.values) / len(self.values)
+        return sum(x for x in self.values if x is not None) / sum(1 for x in self.values if x is not None)
     
     @property
     def stddev(self):
         if not self.values:
             return None
-        return statistics.stdev(self.values)
+        return statistics.stdev(x for x in self.values if x is not None)
     
     def __getitem__(self, key):
         if isinstance(key, int | slice):

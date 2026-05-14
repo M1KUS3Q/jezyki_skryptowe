@@ -12,6 +12,9 @@ class OutlierDetector(SeriesValidator):
         stdev = series.stddev
         anomalies: list[Anomaly] = []
         for i in range(len(series.values)):
+            if series.values[i] is None:
+                continue
+            
             if abs(series.values[i] - mean) > self.max_stdevs_from_mean * stdev:
                 anomalies.append(f"Outlier at index {i}: {series.values[i]}")
         return anomalies
