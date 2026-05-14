@@ -4,12 +4,16 @@ import os
 import re
 
 from lista5.time_series import TimeSeries
+from lista5.validator import SeriesValidator
+from lista5.validator.series_validator import Anomaly
 
+type Quantity = str
+type StationCode = str
 
 class Measurements:
     path: Path
     total_series_count = -1
-    paths_by_quantity: dict[str, list[Path]] = {}
+    paths_by_quantity: dict[Quantity, list[Path | dict[StationCode, TimeSeries]]] = {}
 
     def __init__(self, path):
         self.path = Path(path)
@@ -48,7 +52,7 @@ class Measurements:
     def __contains__(self, parameter_name: str):
         return parameter_name in self.paths_by_quantity
 
-    def _load_file(self, path: Path) -> dict[str, 'TimeSeries']:
+    def _load_file(self, path: Path) -> dict[StationCode, 'TimeSeries']:
         series_by_station = {}
         
         with open(path, mode='r', encoding='utf-8') as f:
@@ -119,7 +123,7 @@ class Measurements:
                     
         return series_by_station
 
-    def get_by_station(self, station_code: str) -> list['TimeSeries']:
+    def get_by_station(self, station_code: StationCode) -> list['TimeSeries']:
         result = []
         
         for param_name, items in self.paths_by_quantity.items():
@@ -148,7 +152,7 @@ class Measurements:
                         
         return result
 
-    def get_by_parameter(self, param_name: str) -> list['TimeSeries']:
+    def get_by_parameter(self, param_name: Quantity) -> list['TimeSeries']:
         if param_name not in self.paths_by_quantity:
             return []
             
@@ -163,8 +167,32 @@ class Measurements:
                 result.extend(item.values())
                 
         return result
+    
+    def _preload(self):
+        for quantity, files in self.paths_by_quantity.items():
+            for idx, item in enumerate(files):
+                if isinstance(item, Path):
+                    loaded_data = self._load_file(item)
+                    self.paths_by_quantity[quantity][idx] = loaded_data
+                
+    def detect_all_anomalies(self, validators: list[SeriesValidator], preload: bool = False) -> dict[tuple[StationCode, Quantity], list[Anomaly]]:
+        if preload:
+            self._preload()
+
+        anomalies: dict[tuple[StationCode, Quantity], list[Anomaly]] = {}
+        for quantity, cache in self.paths_by_quantity.items():
+            for series_by_station in cache:
+                if not isinstance(series_by_station, dict):
+                    continue
+                
+                for station_code, series in series_by_station.items():
+                    if (station_code, quantity) not in anomalies:
+                        anomalies[(station_code, quantity)] = []
                     
- 
+                    for validator in validators:
+                        anomalies[(station_code, quantity)].extend(validator.analyze(series))
+                        
+        return anomalies
 
 if __name__ == "__main__":
     m = Measurements("data/measurements") 

@@ -1,0 +1,100 @@
+Station: DsGlogWiStwo, Quantity: Cd(PM10)
+  - Zero spike starting at index 232, length 24
+  - Info: Cd(PM10) at DsGlogWiStwo has mean 0.3177313432835821
+Station: DsLegAlRzecz, Quantity: Cd(PM10)
+  - Zero spike starting at index 239, length 3
+  - Info: Cd(PM10) at DsLegAlRzecz has mean 0.43371830985915494
+Station: DsOsieczow21, Quantity: Cd(PM10)
+  - Zero spike starting at index 176, length 3
+  - Zero spike starting at index 195, length 3
+  - Zero spike starting at index 205, length 3
+  - Zero spike starting at index 325, length 3
+  - Zero spike starting at index 358, length 7
+  - Info: Cd(PM10) at DsOsieczow21 has mean 0.12038575667655786
+Station: DsPolKasztan, Quantity: Cd(PM10)
+  - Zero spike starting at index 323, length 21
+  - Info: Cd(PM10) at DsPolKasztan has mean 0.15269005847953215
+Station: DsWalbrzWyso, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at DsWalbrzWyso has mean 0.22444444444444445
+Station: DsWrocWybCon, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at DsWrocWybCon has mean 0.16634615384615387
+Station: KpBydWarszaw, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at KpBydWarszaw has mean 0.15926027397260276
+Station: KpNaklWawrzy, Quantity: Cd(PM10)
+  - Zero spike starting at index 167, length 3
+  - Info: Cd(PM10) at KpNaklWawrzy has mean 0.14447513812154697
+Station: KpToruDziewu, Quantity: Cd(PM10)
+  - Outlier at index 36: 0.33
+  - Outlier at index 37: 0.33
+  - Outlier at index 38: 0.33
+  - Outlier at index 39: 0.33
+  - Outlier at index 40: 0.33
+  - Outlier at index 41: 0.33
+  - Outlier at index 42: 0.33
+  - Info: Cd(PM10) at KpToruDziewu has mean 0.11035616438356165
+Station: KpWloclGniaz, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at KpWloclGniaz has mean 0.147013698630137
+Station: KpZielBoryTu, Quantity: Cd(PM10)
+  - Zero spike starting at index 26, length 4
+  - Zero spike starting at index 236, length 10
+  - Info: Cd(PM10) at KpZielBoryTu has mean 0.04182336182336182
+Station: LbChelmPolan, Quantity: Cd(PM10)
+  - Zero spike starting at index 357, length 4
+  - Info: Cd(PM10) at LbChelmPolan has mean 0.12556786703601108
+Station: LbLubSliwins, Quantity: Cd(PM10)
+  - Outlier at index 22: 0.63
+  - Outlier at index 23: 0.63
+  - Outlier at index 24: 0.63
+  - Outlier at index 25: 0.63
+  - Outlier at index 26: 0.63
+  - Outlier at index 27: 0.63
+  - Outlier at index 28: 0.63
+  - Info: Cd(PM10) at LbLubSliwins has mean 0.1368219178082192
+Station: LdLodzLegion, Quantity: Cd(PM10)
+  - Zero spike starting at index 78, length 14
+  - Info: Cd(PM10) at LdLodzLegion has mean 0.1961823361823362
+Station: LdPioTrKraPr, Quantity: Cd(PM10)
+  - Zero spike starting at index 274, length 7
+  - Info: Cd(PM10) at LdPioTrKraPr has mean 0.26179271708683477
+Station: LuGorzKosGdy, Quantity: Cd(PM10)
+  - Outlier at index 127: 1.0
+  - Outlier at index 128: 1.0
+  - Outlier at index 129: 1.0
+  - Outlier at index 130: 1.0
+  - Outlier at index 131: 1.0
+  - Outlier at index 132: 1.0
+  - Outlier at index 133: 1.0
+  - Info: Cd(PM10) at LuGorzKosGdy has mean 0.15596153846153846
+Station: LuMiedzyrMOB, Quantity: Cd(PM10)
+  - Zero spike starting at index 0, length 11
+  - Info: Cd(PM10) at LuMiedzyrMOB has mean 0.12372881355932204
+Station: LuNowaSolKos, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at LuNowaSolKos has mean 0.255
+Station: LuWsKaziWiel, Quantity: Cd(PM10)
+  - Outlier at index 309: 1.85
+  - Outlier at index 310: 1.85
+  - Outlier at index 311: 1.85
+  - Outlier at index 312: 1.85
+  - Outlier at index 313: 1.85
+  - Outlier at index 314: 1.85
+  - Outlier at index 315: 1.85
+  - Info: Cd(PM10) at LuWsKaziWiel has mean 0.32346153846153847
+Station: LuZarySzyman, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at LuZarySzyman has mean 0.15942307692307692
+Station: LuZielKrotka, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at LuZielKrotka has mean 0.1996153846153846
+Station: MpKrakBujaka, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at MpKrakBujaka has mean 0.24315068493150685
+Station: MpKrakBulwar, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at MpKrakBulwar has mean 0.33252054794520547
+Station: MpKrakWadow, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at MpKrakWadow has mean 0.24904109589041099
+Station: MpTarBitStud, Quantity: Cd(PM10)
+  - Zero spike starting at index 19, length 10
+  - Info: Cd(PM10) at MpTarBitStud has mean 0.23185915492957748
+Station: MpTrzebOsZWM, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at MpTrzebOsZWM has mean 0.3967123287671233
+Station: MzOtwoBrzozo, Quantity: Cd(PM10)
+  - Info: Cd(PM10) at MzOtwoBrzozo has mean 0.21030303030303032
+Station: MzPlocKroJad, Quantity: Cd(PM10)
+  - Zero spike starting at index 0, length 4
