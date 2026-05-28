@@ -1,11 +1,8 @@
 from functools import cache
 from typing import Generator
 
-def make_generator(f) -> Generator[int, None, None]:
-    i = 1
-    while True:
-        yield f(i)
-        i += 1
+from lista7.zad4 import make_generator
+
 
 def make_generator_mem(f) -> Generator[int, None, None]:
     memoized_f = cache(f) 
