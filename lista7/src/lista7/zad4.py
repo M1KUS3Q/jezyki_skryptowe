@@ -25,28 +25,22 @@ def fibonacci_iterative(n):
     return b
 
 if __name__ == "__main__":
-    # ZADANIE 4a: Ciąg Fibonacciego 
-    print("--- Ciąg Fibonacciego ---")
+    # ciąg Fibonacciego 
     fib_gen = make_generator(fibonacci_iterative)
     for _ in range(5):
         print(next(fib_gen))
 
-    # ZADANIE 4b: Wyrażenia lambda 
-    
-    # Ciąg arytmetyczny (np. a_n = 3n - 1) 
-    print("\n--- Ciąg arytmetyczny (3n - 1) ---")
+    # ciąg arytmetyczny (a_n = 3n - 1) 
     arithmetic_gen = make_generator(lambda n: 3 * n - 1)
     for _ in range(5):
         print(next(arithmetic_gen))
 
-    # Ciąg geometryczny (np. a_n = 2^n) 
-    print("\n--- Ciąg geometryczny (2^n) ---")
+    # ciąg geometryczny (a_n = 2^n) 
     geometric_gen = make_generator(lambda n: 2 ** n)
     for _ in range(5):
         print(next(geometric_gen))
 
-    # Ciąg potęgowy (np. a_n = n^2) 
-    print("\n--- Ciąg potęgowy (n^2) ---")
+    # ciąg potęgowy (a_n = n^2) 
     power_gen = make_generator(lambda n: n ** 2)
     for _ in range(5):
         print(next(power_gen))

@@ -18,7 +18,6 @@ def fibonacci_recursive(n):
     return fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2)
 
 if __name__ == "__main__":
-    print("--- Ciąg Fibonacciego ---")
     fib_gen = make_generator_mem(fibonacci_recursive)
     for _ in range(5):
         print(next(fib_gen))
