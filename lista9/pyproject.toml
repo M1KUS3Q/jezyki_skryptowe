@@ -1,5 +1,5 @@
 [project]
-name = "lista5"
+name = "lista9"
 version = "0.1.0"
 description = ""
 authors = [
@@ -8,11 +8,11 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "typer (>=0.25.1,<0.26.0)"
+    "mypy (>=2.1.0,<3.0.0)"
 ]
 
 [tool.poetry]
-packages = [{include = "lista5", from = "src"}]
+packages = [{include = "lista9", from = "src"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
