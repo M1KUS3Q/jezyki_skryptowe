@@ -1,0 +1,39 @@
+import datetime
+import statistics
+
+# Measurements of one indicator for one station
+class TimeSeries:
+    def __init__(self):
+        self.indicator = ""
+        self.averaging_time = ""
+        self.unit = ""
+        self.station_code = ""
+        self.dates = []
+        self.values = []
+    
+    @property
+    def mean(self):        
+        if not self.values:
+            return None
+        return sum(x for x in self.values if x is not None) / sum(1 for x in self.values if x is not None)
+    
+    @property
+    def stddev(self):
+        if not self.values:
+            return None
+        return statistics.stdev(x for x in self.values if x is not None)
+    
+    def __getitem__(self, key):
+        if isinstance(key, int | slice):
+            return zip(self.dates[key], self.values[key])
+        
+        if isinstance(key, datetime.date | datetime.datetime):
+            result = []
+            for date, value in zip(self.dates, self.values):
+                if date == key:
+                    result.append((date, value))
+            if result:                
+                return result
+            raise KeyError(f"Date {key} not found in time series")
+        
+        raise TypeError(f"Invalid key type: {type(key)}.")
