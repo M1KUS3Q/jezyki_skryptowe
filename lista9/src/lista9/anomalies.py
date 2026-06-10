@@ -98,7 +98,7 @@ if __name__ == "__main__":
     parser.add_argument("--edge-levels", type=str, default=None, help="Comma-separated list of indicator=edge_level pairs, e.g. 'pm10=500.0,pm2.5=250.0'")
     
     args = parser.parse_args()
-    
+    edge_levels: dict[MeasuredQuantity, float] | None
     if args.edge_levels is not None:
         edge_levels = {}
         for pair in args.edge_levels.split(","):
@@ -106,8 +106,8 @@ if __name__ == "__main__":
             indicator = MeasuredQuantity(indicator_str.strip().upper())
             level = float(level_str.strip())
             edge_levels[indicator] = level
-    # else:
-    #     edge_levels = None
+    else:
+        edge_levels = None
         
     settings = AnomalyDetectionSettings(
         max_delta=args.max_delta,

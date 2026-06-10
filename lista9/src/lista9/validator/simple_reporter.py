@@ -11,7 +11,7 @@ class SimpleReporter(SeriesValidator):
 if __name__ == "__main__":
     time_series = Measurements("data/measurements").get_by_parameter("PM10")[0]
 
-    analyzers: list[SeriesValidator] = [OutlierDetector(1), ThresholdDetector(500), ZeroSpikeDetector(), SimpleReporter()]
+    analyzers: list[SeriesValidator] = [OutlierDetector(5), ThresholdDetector(500), ZeroSpikeDetector(), SimpleReporter()]
     
     for analyzer in analyzers:
         anomalies = analyzer.analyze(time_series)

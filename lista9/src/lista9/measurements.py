@@ -92,7 +92,7 @@ class Measurements:
                 if not line.strip():
                     continue
 
-                # cols: list[str] = line.strip().split(",") DOBRZE?
+                cols = line.strip().split(",")
                 if not cols[0]:
                     continue
 
