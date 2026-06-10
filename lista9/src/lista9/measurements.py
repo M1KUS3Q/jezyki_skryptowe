@@ -92,7 +92,7 @@ class Measurements:
                 if not line.strip():
                     continue
 
-                cols: list[str] = line.strip().split(",")
+                # cols: list[str] = line.strip().split(",") DOBRZE?
                 if not cols[0]:
                     continue
 
@@ -106,7 +106,7 @@ class Measurements:
                     if i > stations_count:
                         break
 
-                    station_code: str = station_code_row[i] if i < len(station_code_row) else ""
+                    station_code = station_code_row[i] if i < len(station_code_row) else ""
                     if station_code not in series_by_station:
                         continue
 

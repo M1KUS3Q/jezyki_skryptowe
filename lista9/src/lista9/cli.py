@@ -6,7 +6,7 @@ import statistics
 import sys
 from datetime import datetime
 
-from lista9.parser import EnvironmentalDataset, parse_environmental_data
+from lista9.parser import EnvironmentalDataset, StationId, parse_environmental_data
 
 class StdoutLogFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
@@ -91,7 +91,7 @@ def execute_worst_station(args: argparse.Namespace, dataset: EnvironmentalDatase
     start_date = datetime.strptime(args.start_date, "%Y-%m-%d")
     end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
     
-    station_total = {}
+    station_total: dict[StationId, list[float]] = {}
     for obs in dataset.observations:
         if obs.datetime > end_date or obs.datetime < start_date:
             continue
@@ -107,14 +107,14 @@ def execute_worst_station(args: argparse.Namespace, dataset: EnvironmentalDatase
             if measurement is not None:
                 station_total[station].append(measurement)
     
-    station_total = { k: statistics.mean(v) for k,v in station_total.items() }
+    station_mean: dict[StationId, float] = { k: statistics.mean(v) for k,v in station_total.items() }
     
-    if len(station_total.keys()) == 0:
+    if len(station_mean.keys()) == 0:
         print("No data found")
         return
     
-    max_station = max(station_total, key=lambda k: station_total[k])
-    print(max_station, station_total[max_station])
+    max_station = max(station_mean, key=lambda k: station_mean[k])
+    print(max_station, station_mean[max_station])
 
 def execute_stats(args: argparse.Namespace, dataset: EnvironmentalDataset, logger: logging.Logger) -> None:
     target_sensor_id = None

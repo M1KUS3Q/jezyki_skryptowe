@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from ast import Dict
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -10,13 +9,13 @@ from typing import List, Optional
 from lista9.app import MeasuredQuantity
 from lista9.parser import EnvironmentalDataset, Observation, SensorId, parse_environmental_data
 
-type ObservationsBySensor = Dict[SensorId, List[tuple[datetime,Optional[float]]]]
+type ObservationsBySensor = dict[SensorId, List[tuple[datetime,Optional[float]]]]
 
 @dataclass
 class AnomalyDetectionSettings:
     max_delta: float = INFINITY
     max_invalid_value_fraction: float = 1.0
-    edge_levels: Dict[MeasuredQuantity, float] | None = None
+    edge_levels: dict[MeasuredQuantity, float] | None = None
 
 class AnomalyDetectionReason(Enum):
     MAX_DELTA_EXCEEDED = "max_delta_exceeded"
@@ -107,8 +106,8 @@ if __name__ == "__main__":
             indicator = MeasuredQuantity(indicator_str.strip().upper())
             level = float(level_str.strip())
             edge_levels[indicator] = level
-    else:
-        edge_levels = None
+    # else:
+    #     edge_levels = None
         
     settings = AnomalyDetectionSettings(
         max_delta=args.max_delta,

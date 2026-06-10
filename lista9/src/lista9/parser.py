@@ -63,13 +63,17 @@ def parse_stations_csv(filepath: str) -> Dict[StationId, StationInfo]:
         for row in reader:
             # Handle potential whitespace/newline artifacts in the raw CSV header
             old_code_key = next((k for k in row.keys() if k and "Stary Kod" in k), "Stary Kod stacji")
+
+            startup_date=_parse_date(row.get("Data uruchomienia"))
+            if startup_date is None:
+                raise ValueError
             
             stations[row["Kod stacji"]] = StationInfo(
                 number=int(row["Nr"]) if row.get("Nr") else 0,
                 international_code=row["Kod międzynarodowy"],
                 station_name=row["Nazwa stacji"],
                 old_station_code=row.get(old_code_key, ""),
-                startup_date=_parse_date(row.get("Data uruchomienia")),
+                startup_date=startup_date,
                 closing_date=_parse_date(row.get("Data zamknięcia")),
                 station_type=row["Typ stacji"],
                 area_type=row["Typ obszaru"],
