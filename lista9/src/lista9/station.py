@@ -2,10 +2,25 @@ from datetime import datetime
 from typing import Optional
 
 
-class Station:    
-    def __init__(self, station_code: str, number: int, international_code: str, station_name: str, old_station_code: str,
-                 startup_date: datetime, closing_date: Optional[datetime], station_type: str, area_type: str,
-                 station_kind: str, voivodeship: str, city: str, address: str, latitude_n: float, longitude_e: float):
+class Station:
+    def __init__(
+        self,
+        station_code: str,
+        number: int,
+        international_code: str,
+        station_name: str,
+        old_station_code: str,
+        startup_date: datetime,
+        closing_date: Optional[datetime],
+        station_type: str,
+        area_type: str,
+        station_kind: str,
+        voivodeship: str,
+        city: str,
+        address: str,
+        latitude_n: float,
+        longitude_e: float,
+    ) -> None:
         
         self.station_code = station_code
         self.number = number
@@ -23,10 +38,10 @@ class Station:
         self.latitude_n = latitude_n
         self.longitude_e = longitude_e
         
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Station(id={self.station_code}, name={self.station_name}, city={self.city})"
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Station(id={self.station_code!r}, number={self.number!r}, international_code={self.international_code!r}, "
             f"station_name={self.station_name!r}, old_station_code={self.old_station_code!r}, "
@@ -36,7 +51,7 @@ class Station:
             f"address={self.address!r}, latitude_n={self.latitude_n!r}, longitude_e={self.longitude_e!r})"
         )
         
-    def __eq__(self, value):
+    def __eq__(self, value: object) -> bool:
         if not isinstance(value, Station):
             return False
         return self.station_code == value.station_code

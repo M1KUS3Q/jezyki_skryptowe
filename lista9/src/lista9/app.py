@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 import typer
 
-from lista5.parser import EnvironmentalDataset, parse_environmental_data
+from lista9.parser import EnvironmentalDataset, parse_environmental_data
 
 app = typer.Typer(help="environmental data analysis cli tool")
 

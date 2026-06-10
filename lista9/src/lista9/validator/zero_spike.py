@@ -1,12 +1,12 @@
-from lista5.time_series import TimeSeries
-from lista5.validator import SeriesValidator, Anomaly
+from lista9.time_series import TimeSeries
+from lista9.validator import SeriesValidator, Anomaly
 
 
 class ZeroSpikeDetector(SeriesValidator):
     def analyze(self, series: TimeSeries) -> list[Anomaly]:
-        anomalies = []
+        anomalies: list[Anomaly] = []
         
-        def check(x):
+        def check(x: float | None) -> bool:
             return x is None or x == 0.0
         
         # flag anomaly at index i if 3 or more values in [i..] are 0 or None
