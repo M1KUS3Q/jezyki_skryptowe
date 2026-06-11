@@ -1,3 +1,5 @@
+import statistics
+
 from lista9.time_series import TimeSeries
 from lista9.validator import Anomaly, SeriesValidator
 
@@ -6,10 +8,12 @@ class OutlierDetector(SeriesValidator):
         self.max_stdevs_from_mean: float = threshold
     
     def analyze(self, series: TimeSeries) -> list[Anomaly]:
-        mean = series.mean
-        stdev = series.stddev
-        if mean is None or stdev is None:
+        values = [value for value in series.values if value is not None]
+        if not values:
             return []
+
+        mean = statistics.fmean(values)
+        stdev = statistics.pstdev(values)
 
         anomalies: list[Anomaly] = []
         for i in range(len(series.values)):
