@@ -9,7 +9,6 @@ Reads settings from:
 from __future__ import annotations
 
 import os
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 import tomllib
@@ -38,7 +37,7 @@ class Settings:
     api_key: str = field(default_factory=lambda: os.environ.get("PAPER_AGGREGATOR_API_KEY", ""))
     api_base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-5.4-nano"
-    max_context_tokens: int = 6000
+    max_context_chars: int = 6000
     db_path: Path = field(default_factory=lambda: _default_data_dir() / "papers.db")
     pdf_storage_path: Path = field(default_factory=lambda: _default_data_dir() / "pdfs")
 
@@ -67,8 +66,8 @@ class Settings:
             settings.api_base_url = data["api_base_url"]
         if "model" in data:
             settings.model = data["model"]
-        if "max_context_tokens" in data:
-            settings.max_context_tokens = data["max_context_tokens"]
+        if "max_context_chars" in data:
+            settings.max_context_chars = data["max_context_chars"]
         if "db_path" in data:
             settings.db_path = Path(data["db_path"]).expanduser()
         if "pdf_storage_path" in data:
