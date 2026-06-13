@@ -1,4 +1,4 @@
-# LLM-Assisted Research Paper Aggregator — Requirements
+# LLM-Assisted Research Paper Aggregator - Requirements
 
 ## Overview
 
@@ -36,7 +36,7 @@ A single-user CLI tool that builds a personal, searchable research-paper library
 
 ### 1.3 Search (`search` command)
 
-Manual tag-based search. The user filters papers by specifying one or more tags directly — no LLM involved in the query path (NL-to-filter translation deferred to a later revision).
+Manual tag-based search. The user filters papers by specifying one or more tags directly - no LLM involved in the query path (NL-to-filter translation deferred to a later revision).
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
@@ -54,11 +54,11 @@ Manual tag-based search. The user filters papers by specifying one or more tags 
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| **F4.1** | `list` — print all papers in the DB, newest first. | Should |
-| **F4.2** | `list --tag <tag>` — filter by a specific tag. | Could |
-| **F4.3** | `remove <id>` or `remove <url>` — delete a paper and its tags from the DB. | Should |
-| **F4.4** | `show <id>` — print full details for one paper (all tags, abstract, URL). | Should |
-| **F4.5** | `tags` — list all distinct tags in the DB with paper counts. | Could |
+| **F4.1** | `list` - print all papers in the DB, newest first. | Should |
+| **F4.2** | `list --tag <tag>` - filter by a specific tag. | Could |
+| **F4.3** | `remove <id>` or `remove <url>` - delete a paper and its tags from the DB. | Should |
+| **F4.4** | `show <id>` - print full details for one paper (all tags, abstract, URL). | Should |
+| **F4.5** | `tags` - list all distinct tags in the DB with paper counts. | Could |
 
 ### 1.5 Configuration
 
@@ -76,10 +76,10 @@ Manual tag-based search. The user filters papers by specifying one or more tags 
 | ID | Requirement |
 |----|-------------|
 | **NF1** | **Offline-first**: the DB is always local; the tool works without internet for `search`/`list`/`show`/`tags`/`remove`. |
-| **NF2** | **OpenAI-compatible API**: the LLM backend speaks the OpenAI chat completions format. The user configures `api_base_url` and brings their own key — works with OpenAI, local Ollama, LiteLLM proxy, or any compatible endpoint. |
+| **NF2** | **OpenAI-compatible API**: the LLM backend speaks the OpenAI chat completions format. The user configures `api_base_url` and brings their own key - works with OpenAI, local Ollama, LiteLLM proxy, or any compatible endpoint. |
 | **NF3** | **Graceful failures**: broken URLs, unparseable PDFs, LLM timeouts, and invalid LLM JSON must produce clear errors without crashing or corrupting the DB. |
 | **NF4** | **Idempotent ingestion**: adding the same URL twice should be safe (skip or update, never duplicate). |
-| **NF5** | **Token efficiency**: only send the first ~6000 characters (or a configurable slice) of a paper's text to the LLM — enough for the title, abstract, intro, and keywords. |
+| **NF5** | **Token efficiency**: only send the first ~6000 characters (or a configurable slice) of a paper's text to the LLM - enough for the title, abstract, intro, and keywords. |
 | **NF6** | **Performance**: text extraction should complete in under 30 seconds for a 50-page PDF on consumer hardware. |
 | **NF7** | **Python ≥3.12**: match the existing `pyproject.toml` constraint. |
 
@@ -185,7 +185,7 @@ paper-aggregator config [--key <k>] [--value <v>]   # read/set config
 
 | # | Decision | Rationale |
 |---|----------|-----------|
-| 1 | **LLM provider**: OpenAI-compatible API, user brings their own key + endpoint | Works with OpenAI, Ollama, LiteLLM, and any self-hosted model — zero vendor lock-in. |
+| 1 | **LLM provider**: OpenAI-compatible API, user brings their own key + endpoint | Works with OpenAI, Ollama, LiteLLM, and any self-hosted model - zero vendor lock-in. |
 | 2 | **PDF extraction**: PyMuPDF (fitz) | Fastest option; AGPL is acceptable for a personal/university tool. |
 | 3 | **HTML parsing**: out of scope for v1 | PDF is the universal academic format; arXiv pages redirect to PDFs anyway. |
 | 4 | **PDF storage**: keep PDFs in a local `pdfs/` folder, SQLite stores paths | Enables re-extraction and manual reading later without re-downloading. |
@@ -204,7 +204,7 @@ Per course requirements, the project must demonstrate proper software engineerin
 | **A1** | **Separation of layers**: business logic must be separated from the UI layer. The CLI is the UI; all domain logic (ingestion, tagging, search, DB access) must live in separate, independent modules callable without any CLI dependency. | Must |
 | **A2** | **SOLID principles**: single-responsibility classes/modules, dependency injection for the LLM client and DB session, interfaces that allow swapping implementations (e.g., a stub tagger for tests). | Should |
 | **A3** | **DRY & POLA**: avoid duplication across commands; each function/module should expose the least surface needed. | Should |
-| **A4** | **Design patterns**: use established patterns where they fit — Repository for DB access, Strategy for configurable LLM backends, Command for CLI actions. | Should |
+| **A4** | **Design patterns**: use established patterns where they fit - Repository for DB access, Strategy for configurable LLM backends, Command for CLI actions. | Should |
 | **A5** | **Testable by design**: business logic must be callable and testable without invoking the CLI runner or touching the real network/LLM. | Must |
 
 ---
@@ -275,8 +275,8 @@ Documentation is part of the project grading (10%). The codebase must be self-do
 | **DOC1** | **`README.md`** at the repo root covering: project description, features, dependencies, how to install, how to run, how to test, configuration reference (env vars + config file), and a link to this REQUIREMENTS.md. | Must |
 | **DOC2** | **User documentation**: a `docs/` directory or a section in README with walkthrough examples for `add`, `search`, `list`, `show`, `remove`, `tags`, `init`, and `config`. | Should |
 | **DOC3** | **Technical documentation**: module-level docstrings describing purpose and public API; class/method docstrings for non-obvious logic. | Should |
-| **DOC4** | **Architecture overview**: a brief section in README (or a linked `ARCHITECTURE.md`) describing the layered structure — CLI layer → command handlers → domain services → repositories → DB / LLM client. | Should |
-| **DOC5** | **Inline code comments**: document *why*, not *what* — explain design choices, workarounds, and non-obvious behavior. | Should |
+| **DOC4** | **Architecture overview**: a brief section in README (or a linked `ARCHITECTURE.md`) describing the layered structure - CLI layer → command handlers → domain services → repositories → DB / LLM client. | Should |
+| **DOC5** | **Inline code comments**: document *why*, not *what* - explain design choices, workarounds, and non-obvious behavior. | Should |
 
 ---
 
@@ -286,7 +286,7 @@ Documentation is part of the project grading (10%). The codebase must be self-do
 |----|-------------|----------|
 | **VCS1** | The project must use **git** for version control throughout development. | Must |
 | **VCS2** | Commits should be granular, well-described (conventional commit style preferred: `feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`). | Should |
-| **VCS3** | The repository must contain the full history — not a single squashed commit at submission. | Must |
+| **VCS3** | The repository must contain the full history - not a single squashed commit at submission. | Must |
 
 ---
 
@@ -296,7 +296,7 @@ Recap of the course-mandated minimum scope, cross-referenced with this document:
 
 | Scope item | Covered by |
 |------------|------------|
-| User interface | CLI (§5) — GUI deferred per project plan |
+| User interface | CLI (§5) - GUI deferred per project plan |
 | Business logic layer | §1 (all functional requirements) + §8 (architecture) |
 | Persistent data storage or external API | SQLite DB (§4) + OpenAI-compatible LLM API (§1.2) |
 | Error handling & input validation | §2 NF3 + F1.7 + F2.3 + T1.1–T1.4 |
