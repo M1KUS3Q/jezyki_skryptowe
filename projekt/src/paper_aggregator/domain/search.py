@@ -21,10 +21,29 @@ class SearchFilters:
 def parse_year_filter(year_spec: str) -> tuple[int | None, int | None]:
     """Parse a year filter string.
 
-    ``"2020"`` → (2020, 2020)
-    ``"2020-2023"`` → (2020, 2023)
+    ``"2020"`` → ``(2020, 2020)``
+    ``"2020-2023"`` → ``(2020, 2023)``
+
+    Returns ``(None, None)`` for any input that cannot be parsed as a
+    valid year or year range.
     """
-    ...
+    spec = year_spec.strip()
+
+    # Single year: "YYYY"
+    if spec.isdigit():
+        year = int(spec)
+        return (year, year)
+
+    # Range: "YYYY-YYYY"
+    if "-" in spec:
+        parts = spec.split("-", 1)
+        if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
+            y_from = int(parts[0].strip())
+            y_to = int(parts[1].strip())
+            if y_from <= y_to:
+                return (y_from, y_to)
+
+    return (None, None)
 
 
 def build_search_filters(
@@ -34,5 +53,33 @@ def build_search_filters(
     year: str | None = None,
     limit: int = 50,
 ) -> SearchFilters:
-    """Build a SearchFilters instance from raw CLI inputs."""
-    ...
+    """Build a :class:`SearchFilters` instance from raw CLI inputs.
+
+    Parameters
+    ----------
+    tags:
+        List of tag names to filter by (AND semantics).
+    author:
+        Substring to match against author names.
+    field:
+        Substring to match against ``primary_field`` or ``sub_field``.
+    year:
+        Year specification (``"YYYY"`` or ``"YYYY-YYYY"``).
+    limit:
+        Maximum number of results to return.
+    """
+    year_from: int | None = None
+    year_to: int | None = None
+
+    if year is not None:
+        year_from, year_to = parse_year_filter(year)
+
+    return SearchFilters(
+        tags=tags if tags else None,
+        author=author.strip() if author else None,
+        field=field.strip() if field else None,
+        year_exact=None if year_from != year_to or year_from is None else year_from,
+        year_from=year_from,
+        year_to=year_to,
+        limit=limit,
+    )
