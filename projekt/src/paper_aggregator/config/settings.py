@@ -4,6 +4,10 @@ Reads settings from:
 1. Environment variables (highest priority)
 2. TOML config file at ~/.config/paper-aggregator/config.toml
 3. Sensible defaults
+
+A ``.env`` file in the current working directory (or any parent) is
+automatically loaded on import via ``python-dotenv``.  Existing
+environment variables are never overwritten.
 """
 
 from __future__ import annotations
@@ -11,7 +15,12 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+
 import tomllib
+from dotenv import load_dotenv
+
+# Load .env once at import time.  Does not override already-set env vars.
+load_dotenv(override=False)
 
 
 def _default_config_path() -> Path:
