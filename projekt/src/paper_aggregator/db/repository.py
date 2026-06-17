@@ -36,8 +36,9 @@ CREATE TABLE IF NOT EXISTS paper_authors (
 
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('keyword', 'methodology'))
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK (category IN ('keyword', 'methodology')),
+    UNIQUE(name, category)
 );
 
 CREATE TABLE IF NOT EXISTS paper_tags (
@@ -280,7 +281,7 @@ class PaperRepository:
         """List papers, newest first, optionally filtered by tag."""
         if tag:
             query = """
-                SELECT p.id, p.title, p.year, p.primary_field, p.sub_field,
+                SELECT p.id, p.title, p.url, p.year, p.primary_field, p.sub_field,
                        p.abstract_summary,
                        GROUP_CONCAT(DISTINCT a.name) AS authors,
                        GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'keyword' THEN t.name END) AS keywords
@@ -301,7 +302,7 @@ class PaperRepository:
             params: tuple = (tag, limit)
         else:
             query = """
-                SELECT p.id, p.title, p.year, p.primary_field, p.sub_field,
+                SELECT p.id, p.title, p.url, p.year, p.primary_field, p.sub_field,
                        p.abstract_summary,
                        GROUP_CONCAT(DISTINCT a.name) AS authors,
                        GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'keyword' THEN t.name END) AS keywords

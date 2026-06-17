@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import typer
@@ -12,6 +13,7 @@ from rich.table import Table
 from paper_aggregator.config.settings import settings as app_settings
 from paper_aggregator.db.repository import PaperRepository
 from paper_aggregator.domain.ingestor import (
+    compute_content_hash,
     detect_file_type,
     download_pdf,
     extract_text,
@@ -60,38 +62,61 @@ def add(
     for url in urls:
         console.print(f"\n[bold]Processing:[/bold] {url}")
 
-        # 1. Validate URL.
-        if not validate_url(url):
-            console.print(f"  [red]✗[/red] Invalid URL: {url}")
+        # ── 1. Determine source: local file or remote URL ──────────────────
+        local_path: Path | None = None
+        if Path(url).is_file():
+            local_path = Path(url).resolve()
+            # Use a file:// URI as the canonical "url" for dedup purposes.
+            db_url = local_path.as_uri()
+            console.print(f"  [dim]Local file: {local_path}[/dim]")
+        elif not validate_url(url):
+            console.print(f"  [red]✗[/red] Invalid URL or non-existent file: {url}")
             continue
+        else:
+            db_url = url
 
-        # 2. Check for duplicates.
-        if db.paper_exists(url):
+        # ── 2. Check for duplicates ────────────────────────────────────────
+        if db.paper_exists(db_url):
             if force:
-                console.print("  [yellow]⚠[/yellow] URL already exists — re-ingesting (--force).")
-                db.remove_paper_by_url(url)
+                console.print("  [yellow]⚠[/yellow] Already ingested — re-ingesting (--force).")
+                db.remove_paper_by_url(db_url)
             else:
                 console.print("  [yellow]⚠[/yellow] Already ingested. Use --force to re-ingest.")
                 continue
 
-        # 3. Download to temporary file.
-        try:
-            tmp_path = Path(pdf_dir) / f"_tmp_{url.split('/')[-1] or 'paper'}"
-            content_hash = download_pdf(url, tmp_path)
-            console.print(f"  [green]✓[/green] Downloaded ({content_hash[:8]}…)")
-        except Exception as exc:
-            console.print(f"  [red]✗[/red] Download failed: {exc}")
-            continue
+        # ── 3. Obtain the file (download or use local) ──────────────────────
+        if local_path is not None:
+            tmp_path = local_path
+            content_type = None
+            try:
+                content_hash = compute_content_hash(local_path)
+                console.print(f"  [green]✓[/green] Using local file ({content_hash[:8]}…)")
+            except PermissionError:
+                console.print(
+                    f"  [red]✗[/red] Permission denied: {local_path}\n"
+                    "  [dim]macOS blocks Python from reading files in "
+                    "~/Downloads, ~/Desktop, and ~/Documents.\n"
+                    "  Workaround: move the file somewhere else first —\n"
+                    f"    [bold]mv '{local_path}' /tmp/in.pdf && "
+                    f"paper-aggregator add /tmp/in.pdf[/bold][/dim]"
+                )
+                continue
+        else:
+            try:
+                tmp_path = Path(pdf_dir) / f"_tmp_{url.split('/')[-1] or 'paper'}"
+                content_hash, content_type = download_pdf(db_url, tmp_path)
+                console.print(f"  [green]✓[/green] Downloaded ({content_hash[:8]}…)")
+            except Exception as exc:
+                console.print(f"  [red]✗[/red] Download failed: {exc}")
+                continue
 
-        # 4. Detect file type and extract text.
+        # ── 4. Detect file type and extract text ───────────────────────────
         try:
-            # We need the content-type from the response, but download_pdf
-            # doesn't return it.  Peek at the extension for now; a future
-            # refactor can plumb the Content-Type through.
-            file_type = detect_file_type(None, url)
+            file_type = detect_file_type(content_type, db_url)
         except ValueError as exc:
             console.print(f"  [red]✗[/red] {exc}")
-            tmp_path.unlink(missing_ok=True)
+            if not local_path:
+                tmp_path.unlink(missing_ok=True)
             continue
 
         try:
@@ -101,17 +126,19 @@ def add(
                 text = tmp_path.read_text(encoding="utf-8")
         except (ValueError, OSError) as exc:
             console.print(f"  [red]✗[/red] Text extraction failed: {exc}")
-            tmp_path.unlink(missing_ok=True)
+            if not local_path:
+                tmp_path.unlink(missing_ok=True)
             continue
 
         if not text.strip():
             console.print("  [red]✗[/red] No text could be extracted.")
-            tmp_path.unlink(missing_ok=True)
+            if not local_path:
+                tmp_path.unlink(missing_ok=True)
             continue
 
         console.print(f"  [green]✓[/green] Extracted {len(text)} characters.")
 
-        # 5. Truncate and tag.
+        # ── 5. Truncate and tag ────────────────────────────────────────────
         truncated, was_truncated = truncate_text(text, settings.max_context_chars)
         if was_truncated:
             console.print(
@@ -123,19 +150,25 @@ def add(
             tags: PaperTags = tag_paper(truncated, model=model)
         except ValueError as exc:
             console.print(f"  [red]✗[/red] LLM tagging failed: {exc}")
-            tmp_path.unlink(missing_ok=True)
+            if not local_path:
+                tmp_path.unlink(missing_ok=True)
             continue
 
         console.print(f"  [green]✓[/green] Tagged — title: {tags.title!r}")
 
         if dry_run:
             console.print_json(tags.model_dump_json())
-            tmp_path.unlink(missing_ok=True)
+            if not local_path:
+                tmp_path.unlink(missing_ok=True)
             continue
 
-        # 6. Store in DB.
+        # ── 6. Store in DB ─────────────────────────────────────────────────
         try:
-            paper_id = db.add_paper(url, str(tmp_path), content_hash)
+            paper_id = db.add_paper(
+                db_url,
+                str(tmp_path) if local_path else str(tmp_path),
+                content_hash,
+            )
             db.save_paper_metadata(
                 paper_id=paper_id,
                 title=tags.title,
@@ -150,13 +183,20 @@ def add(
             console.print(f"  [green]✓[/green] Stored in database (ID: {paper_id}).")
         except Exception as exc:
             console.print(f"  [red]✗[/red] Database write failed: {exc}")
-            tmp_path.unlink(missing_ok=True)
+            if not local_path:
+                tmp_path.unlink(missing_ok=True)
             continue
 
-        # 7. Move PDF to final location.
-        final_path = pdf_dir / f"{paper_id}.pdf"
-        tmp_path.rename(final_path)
-        console.print(f"  [green]✓[/green] PDF stored at {final_path}")
+        # ── 7. Store PDF in the library folder ─────────────────────────────
+        if local_path:
+            # Copy local file into the managed pdfs/ directory.
+            final_path = pdf_dir / f"{paper_id}.pdf"
+            shutil.copy2(local_path, final_path)
+            console.print(f"  [green]✓[/green] PDF copied to {final_path}")
+        else:
+            final_path = pdf_dir / f"{paper_id}.pdf"
+            tmp_path.rename(final_path)
+            console.print(f"  [green]✓[/green] PDF stored at {final_path}")
 
 
 # ---------------------------------------------------------------------------

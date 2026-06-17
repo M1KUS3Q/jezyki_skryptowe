@@ -60,22 +60,33 @@ def detect_file_type(content_type: str | None, url: str) -> str:
     )
 
 
-def download_pdf(url: str, dest_path: Path) -> str:
+def download_pdf(url: str, dest_path: Path) -> tuple[str, str | None]:
     """Download a file from *url* into *dest_path*.
 
-    Returns the SHA-256 content hash of the downloaded file.
+    Returns a ``(content_hash, content_type)`` tuple — *content_type* is
+    the value of the ``Content-Type`` response header (may be ``None``).
 
     Raises :class:`httpx.HTTPStatusError` when the response status is not 2xx,
     and :class:`httpx.RequestError` for network-level failures.
     """
-    with httpx.Client(follow_redirects=True, timeout=30.0) as client:
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (compatible; paper-aggregator/0.1; "
+            "+https://github.com/paper-aggregator)"
+        ),
+    }
+    with httpx.Client(
+        follow_redirects=True, timeout=30.0, headers=headers
+    ) as client:
         response = client.get(url)
         response.raise_for_status()
 
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         dest_path.write_bytes(response.content)
 
-    return compute_content_hash(dest_path)
+        content_type: str | None = response.headers.get("Content-Type")
+
+    return compute_content_hash(dest_path), content_type
 
 
 def extract_text(pdf_path: Path) -> str:
