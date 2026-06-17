@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from paper_aggregator.config.settings import Settings
+from paper_aggregator.config.settings import settings as app_settings
 from paper_aggregator.db.repository import PaperRepository
 from paper_aggregator.domain.ingestor import (
-    compute_content_hash,
     detect_file_type,
     download_pdf,
     extract_text,
@@ -32,14 +30,15 @@ console = Console()
 
 
 def _get_db() -> PaperRepository:
-    """Return the database instance from the Typer context."""
-    ctx = typer.Context
-    return app.context_settings.get("obj", {}).get("db")  # type: ignore[union-attr]
+    """Return a database repository instance."""
+    db = PaperRepository(app_settings.db_path)
+    db.initialize()
+    return db
 
 
-def _get_settings() -> Settings:
-    """Return the settings instance from the Typer context."""
-    return app.context_settings.get("obj", {}).get("settings")  # type: ignore[union-attr]
+def _get_settings():
+    """Return the global settings instance."""
+    return app_settings
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +53,7 @@ def add(
 ) -> None:
     """Download and tag papers from URLs."""
     db: PaperRepository = _get_db()
-    settings: Settings = _get_settings()
+    settings = _get_settings()
     pdf_dir = settings.pdf_storage_path
     pdf_dir.mkdir(parents=True, exist_ok=True)
 
