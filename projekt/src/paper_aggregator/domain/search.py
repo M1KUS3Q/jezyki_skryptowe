@@ -74,10 +74,13 @@ def build_search_filters(
     if year is not None:
         year_from, year_to = parse_year_filter(year)
 
+    author_clean = author.strip() if author else ""
+    field_clean = field.strip() if field else ""
+
     return SearchFilters(
         tags=tags if tags else None,
-        author=author.strip() if author else None,
-        field=field.strip() if field else None,
+        author=author_clean or None,
+        field=field_clean or None,
         year_exact=None if year_from != year_to or year_from is None else year_from,
         year_from=year_from,
         year_to=year_to,

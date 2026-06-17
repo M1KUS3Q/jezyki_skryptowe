@@ -214,15 +214,9 @@ class PaperRepository:
         query = f"""
             SELECT p.id, p.title, p.year, p.primary_field, p.sub_field,
                    p.abstract_summary,
-                   GROUP_CONCAT(DISTINCT a.name, ', ') AS authors,
-                   GROUP_CONCAT(
-                       DISTINCT CASE WHEN t.category = 'keyword'
-                       THEN t.name END, ', '
-                   ) AS keywords,
-                   GROUP_CONCAT(
-                       DISTINCT CASE WHEN t.category = 'methodology'
-                       THEN t.name END, ', '
-                   ) AS methodology
+                   GROUP_CONCAT(DISTINCT a.name) AS authors,
+                   GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'keyword' THEN t.name END) AS keywords,
+                   GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'methodology' THEN t.name END) AS methodology
             FROM papers p
             LEFT JOIN paper_authors pa ON pa.paper_id = p.id
             LEFT JOIN authors a ON a.id = pa.author_id
@@ -230,7 +224,7 @@ class PaperRepository:
             LEFT JOIN tags t ON t.id = pt.tag_id
             {where}
             GROUP BY p.id
-            ORDER BY p.ingested_at DESC
+            ORDER BY p.ingested_at DESC, p.id DESC
             LIMIT ?
         """
         params.append(limit)
@@ -244,15 +238,9 @@ class PaperRepository:
         with self._connect() as conn:
             row = conn.execute(
                 """SELECT p.*,
-                          GROUP_CONCAT(DISTINCT a.name, ', ') AS authors,
-                          GROUP_CONCAT(
-                              DISTINCT CASE WHEN t.category = 'keyword'
-                              THEN t.name END, ', '
-                          ) AS keywords,
-                          GROUP_CONCAT(
-                              DISTINCT CASE WHEN t.category = 'methodology'
-                              THEN t.name END, ', '
-                          ) AS methodology
+                          GROUP_CONCAT(DISTINCT a.name) AS authors,
+                          GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'keyword' THEN t.name END) AS keywords,
+                          GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'methodology' THEN t.name END) AS methodology
                    FROM papers p
                    LEFT JOIN paper_authors pa ON pa.paper_id = p.id
                    LEFT JOIN authors a ON a.id = pa.author_id
@@ -294,11 +282,8 @@ class PaperRepository:
             query = """
                 SELECT p.id, p.title, p.year, p.primary_field, p.sub_field,
                        p.abstract_summary,
-                       GROUP_CONCAT(DISTINCT a.name, ', ') AS authors,
-                       GROUP_CONCAT(
-                           DISTINCT CASE WHEN t.category = 'keyword'
-                           THEN t.name END, ', '
-                       ) AS keywords
+                       GROUP_CONCAT(DISTINCT a.name) AS authors,
+                       GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'keyword' THEN t.name END) AS keywords
                 FROM papers p
                 LEFT JOIN paper_authors pa ON pa.paper_id = p.id
                 LEFT JOIN authors a ON a.id = pa.author_id
@@ -310,7 +295,7 @@ class PaperRepository:
                     WHERE t2.name = ?
                 )
                 GROUP BY p.id
-                ORDER BY p.ingested_at DESC
+                ORDER BY p.ingested_at DESC, p.id DESC
                 LIMIT ?
             """
             params: tuple = (tag, limit)
@@ -318,18 +303,15 @@ class PaperRepository:
             query = """
                 SELECT p.id, p.title, p.year, p.primary_field, p.sub_field,
                        p.abstract_summary,
-                       GROUP_CONCAT(DISTINCT a.name, ', ') AS authors,
-                       GROUP_CONCAT(
-                           DISTINCT CASE WHEN t.category = 'keyword'
-                           THEN t.name END, ', '
-                       ) AS keywords
+                       GROUP_CONCAT(DISTINCT a.name) AS authors,
+                       GROUP_CONCAT(DISTINCT CASE WHEN t.category = 'keyword' THEN t.name END) AS keywords
                 FROM papers p
                 LEFT JOIN paper_authors pa ON pa.paper_id = p.id
                 LEFT JOIN authors a ON a.id = pa.author_id
                 LEFT JOIN paper_tags pt ON pt.paper_id = p.id
                 LEFT JOIN tags t ON t.id = pt.tag_id
                 GROUP BY p.id
-                ORDER BY p.ingested_at DESC
+                ORDER BY p.ingested_at DESC, p.id DESC
                 LIMIT ?
             """
             params = (limit,)
