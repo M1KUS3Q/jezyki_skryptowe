@@ -91,14 +91,10 @@ def mock_openai_client(sample_paper_tags: PaperTags) -> MagicMock:
 # DB fixtures
 # ---------------------------------------------------------------------------
 @pytest.fixture
-def db_repo() -> "PaperRepository":
-    """An in-memory SQLite repository with schema initialized.
-
-    Using ``file::memory:?cache=shared`` with URI mode lets foreign-key
-    pragmas work correctly across connections.
-    """
+def db_repo(tmp_path: Path) -> "PaperRepository":
+    """A PaperRepository backed by a temporary on-disk SQLite database."""
     from paper_aggregator.db.repository import PaperRepository
 
-    repo = PaperRepository("file::memory:?cache=shared")
+    repo = PaperRepository(tmp_path / "test.db")
     repo.initialize()
     return repo
