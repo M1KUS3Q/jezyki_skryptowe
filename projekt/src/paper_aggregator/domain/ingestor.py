@@ -7,6 +7,9 @@ import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
+import fitz  # PyMuPDF
+import httpx
+
 # Maps Content-Type header values (or prefixes) to internal file-type labels.
 _CONTENT_TYPE_MAP: dict[str, str] = {
     "application/pdf": "pdf",
@@ -58,16 +61,59 @@ def detect_file_type(content_type: str | None, url: str) -> str:
 
 
 def download_pdf(url: str, dest_path: Path) -> str:
-    """Download a PDF from *url* into *dest_path*.
+    """Download a file from *url* into *dest_path*.
 
     Returns the SHA-256 content hash of the downloaded file.
+
+    Raises :class:`httpx.HTTPStatusError` when the response status is not 2xx,
+    and :class:`httpx.RequestError` for network-level failures.
     """
-    ...
+    with httpx.Client(follow_redirects=True, timeout=30.0) as client:
+        response = client.get(url)
+        response.raise_for_status()
+
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        dest_path.write_bytes(response.content)
+
+    return compute_content_hash(dest_path)
 
 
 def extract_text(pdf_path: Path) -> str:
-    """Extract plain text from a PDF file using PyMuPDF."""
-    ...
+    """Extract plain text from a PDF file using PyMuPDF.
+
+    Returns the concatenated text from all pages.
+
+    Raises :class:`ValueError` if the PDF is encrypted or yields no text.
+    """
+    try:
+        doc = fitz.open(pdf_path)
+    except (fitz.FileDataError, RuntimeError) as exc:
+        raise ValueError(
+            f"Cannot open PDF file: {pdf_path}. The file may be corrupted "
+            f"or not a valid PDF. ({exc})"
+        ) from exc
+
+    if doc.is_encrypted:
+        doc.close()
+        raise ValueError(
+            f"Cannot extract text from encrypted PDF: {pdf_path}. "
+            f"Password-protected PDFs are not supported."
+        )
+
+    pages: list[str] = []
+    for page in doc:
+        pages.append(page.get_text())
+
+    doc.close()
+
+    text = "\n".join(pages)
+    if not text.strip():
+        raise ValueError(
+            f"No extractable text found in PDF: {pdf_path}. "
+            f"The file may be scanned images only."
+        )
+
+    return text
 
 
 def compute_content_hash(file_path: Path) -> str:
