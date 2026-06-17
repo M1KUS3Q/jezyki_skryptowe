@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTFS Timetable Query</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         background: #f0f2f5; color: #333; padding: 2rem; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { margin-bottom: 1.5rem; color: #1a1a2e; }
+  label { font-weight: 600; display: block; margin-bottom: 0.5rem; }
+  select { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid #ccc;
+           border-radius: 8px; margin-bottom: 2rem; }
+  .card { background: #fff; border-radius: 12px; padding: 1.25rem;
+          margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .card h2 { font-size: 1rem; color: #666; margin-bottom: 0.5rem; text-transform: uppercase;
+             letter-spacing: 0.05em; }
+  .card .value { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
+  .card table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+  .card th, .card td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee; }
+  .card th { color: #888; font-weight: 600; font-size: 0.85rem; }
+  .spinner { text-align: center; padding: 3rem; color: #999; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🚍 Timetable Query</h1>
+
+  <label for="stop-select">Select a stop:</label>
+  <select id="stop-select" autofocus>
+    <option value="">-- choose a stop --</option>
+    {% for s in stops %}
+    <option value="{{ s.stop_id }}">{{ s.stop_name }} ({{ s.stop_code }})</option>
+    {% endfor %}
+  </select>
+
+  <div id="results">
+    <div class="spinner">Select a stop to see statistics</div>
+  </div>
+</div>
+
+<script>
+const resultsDiv = document.getElementById('results');
+const select = document.getElementById('stop-select');
+
+select.addEventListener('change', async () => {
+  const stopId = select.value;
+  if (!stopId) {
+    resultsDiv.innerHTML = '<div class="spinner">Select a stop to see statistics</div>';
+    return;
+  }
+  resultsDiv.innerHTML = '<div class="spinner">Loading...</div>';
+  try {
+    const resp = await fetch('/api/stop/' + stopId);
+    const data = await resp.json();
+    render(data);
+  } catch (e) {
+    resultsDiv.innerHTML = '<div class="spinner" style="color:red">Error loading data</div>';
+  }
+});
+
+function render(d) {
+  let dirRows = (d.most_common_directions || [])
+    .map(r => `<tr><td>${r.trip_headsign || '(none)'}</td><td>${r.cnt}</td></tr>`).join('');
+  let customRows = (d.custom_query || [])
+    .map(r => `<tr><td>${r.route_short_name ?? r.hour ?? '?'}</td><td>${r.cnt}</td></tr>`).join('');
+
+  resultsDiv.innerHTML = `
+    <div class="card"><h2>Lines serving this stop</h2>
+      <div class="value">${d.count_lines}</div></div>
+    <div class="card"><h2>Total departures</h2>
+      <div class="value">${d.count_departures}</div></div>
+    <div class="card"><h2>Time range</h2>
+      <div class="value">${d.earliest || '?'} – ${d.latest || '?'}</div></div>
+    <div class="card"><h2>Most common directions</h2>
+      <table>${dirRows || '<tr><td colspan="2">(none)</td></tr>'}</table></div>
+    <div class="card"><h2>Top lines at this stop</h2>
+      <table>${customRows || '<tr><td colspan="2">(no data)</td></tr>'}</table></div>
+  `;
+}
+</script>
+</body>
+</html>

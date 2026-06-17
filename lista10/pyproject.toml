@@ -1,0 +1,26 @@
+[project]
+name = "lista10"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "M1KUS3Q",email = "mikolaj.popik@icloud.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0,<4.0",
+    "sqlalchemy>=2.0,<3.0",
+]
+
+[project.scripts]
+create-db = "lista10.create_database:main"
+load-data = "lista10.load_data:main"
+query-timetable = "lista10.query:main"
+gui = "lista10.gui:main"
+
+[tool.poetry]
+packages = [{include = "lista10", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
