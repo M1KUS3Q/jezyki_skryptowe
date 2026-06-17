@@ -15,7 +15,18 @@ from paper_aggregator.domain.models import PaperTags
 _SYSTEM_PROMPT = """\
 You are a research librarian assistant. Given the text of an academic paper, \
 extract structured metadata according to the supplied JSON schema. \
-Be precise and concise."""
+Be precise and concise.
+
+Keyword guidelines:
+- Include a mix of **broad** terms (useful for browsing: "AI", "education", \
+"robotics", "climate") and **specific** terms (the exact technique or topic: \
+"BERT", "reinforcement learning", "coral bleaching").
+- Prefer commonly-used abbreviations where they are the standard in the field \
+(e.g. "AI" alongside "artificial intelligence", "NLP" alongside "natural \
+language processing", "CNN" for convolutional neural networks).
+- Think like a search engine: what terms would a researcher type to find this \
+paper? Include both the general category and the distinctive contribution.
+- Use lowercase except for proper nouns and standard acronyms (AI, LSTM, BERT)."""
 
 
 def _build_openai_schema(pydantic_schema: dict[str, Any]) -> dict[str, Any]:
