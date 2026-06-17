@@ -178,3 +178,99 @@ class TestAddRemoteURL:
         assert "Tagged" in result.stdout
         assert mock_tags.title in result.stdout
         assert "Stored in database" not in result.stdout
+
+
+class TestFuzzySearch:
+    """Fuzzy matching in the search command."""
+
+    def test_fuzzy_tag_match(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """Search with a slightly-misspelled tag should fuzzy-match."""
+        db_path = tmp_path / "fuzzy_test.db"
+
+        # First, add a paper so the DB has content.
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        # Now search with a fuzzy tag — "deep learn" should match "deep learning".
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ):
+            result = runner.invoke(
+                app,
+                ["search", "--tag", "deep learn", "--fuzzy-threshold", "70"],
+                catch_exceptions=False,
+            )
+
+        assert result.exit_code == 0, f"stderr: {result.stderr}"
+        # Title may be truncated in the table; check for the fuzzy match message.
+        assert 'deep learn" → "deep learning"' in result.stdout
+        assert "(1)" in result.stdout  # paper count in table title
+
+    def test_fuzzy_tag_no_match(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """A tag that's too different should show a warning."""
+        db_path = tmp_path / "fuzzy_nomatch.db"
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            result = runner.invoke(
+                app,
+                ["search", "--tag", "xyzzyxyzzy"],
+                catch_exceptions=False,
+            )
+
+        assert "No close tag match" in result.stdout or "No papers matched" in result.stdout
+
+    def test_no_fuzzy_disables_matching(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """--no-fuzzy should not match misspelled tags."""
+        db_path = tmp_path / "nofuzzy_test.db"
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            result = runner.invoke(
+                app,
+                ["search", "--tag", "deeplearn", "--no-fuzzy"],
+                catch_exceptions=False,
+            )
+
+        assert "No papers matched" in result.stdout

@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 
 import typer
+from rapidfuzz import fuzz
 from rich.console import Console
 from rich.table import Table
 
@@ -210,12 +211,82 @@ def search(
     year: str | None = typer.Option(None, "--year", help="Filter by year (YYYY or YYYY-YYYY)."),
     limit: int = typer.Option(50, "--limit", "-n", help="Cap results."),
     json_output: bool = typer.Option(False, "--json", help="Output results as JSON."),
+    fuzzy: bool = typer.Option(True, "--fuzzy/--no-fuzzy", help="Fuzzy-match tags and authors (default: on)."),
+    fuzzy_threshold: int = typer.Option(80, "--fuzzy-threshold", help="Minimum similarity score (0–100) for fuzzy matches."),
 ) -> None:
-    """Search papers by tags, author, field, or year."""
+    """Search papers by tags, author, field, or year.
+
+    Tags and authors are fuzzy-matched by default — e.g. "transformer"
+    will find papers tagged "transformers".  Use ``--no-fuzzy`` for
+    exact matching only.
+    """
     db: PaperRepository = _get_db()
+
+    resolved_tags = list(tag) if tag else None
+    resolved_author = author
+
+    if fuzzy:
+        existing_tags = db.list_tags()
+        all_tag_names = [t["name"] for t in existing_tags]
+
+        # ── Fuzzy-expand tag queries ──────────────────────────────────
+        if resolved_tags:
+            expanded: list[str] = []
+            for query in resolved_tags:
+                # Find the best fuzzy match above threshold.
+                best_score = 0
+                best_match = query
+                for name in all_tag_names:
+                    score = fuzz.ratio(query.lower(), name.lower())
+                    if score > best_score:
+                        best_score = score
+                        best_match = name
+                if best_score >= fuzzy_threshold:
+                    if best_match != query:
+                        console.print(
+                            f"  [dim]Tag \"{query}\" → \"{best_match}\" "
+                            f"(score: {best_score})[/dim]"
+                        )
+                    expanded.append(best_match)
+                else:
+                    # No close match — keep the original (may yield no results).
+                    console.print(
+                        f"  [yellow]No close tag match for \"{query}\" "
+                        f"(best: \"{best_match}\", score: {best_score})[/yellow]"
+                    )
+                    expanded.append(query)
+            resolved_tags = expanded
+
+        # ── Fuzzy-expand author query ──────────────────────────────────
+        if resolved_author:
+            from paper_aggregator.db.repository import PaperRepository as PR
+            # Get all distinct author names from the DB.
+            with db._connect() as conn:  # noqa: SLF001
+                rows = conn.execute(
+                    "SELECT DISTINCT name FROM authors ORDER BY name"
+                ).fetchall()
+            all_authors = [r["name"] for r in rows]
+
+            best_score = 0
+            best_match = resolved_author
+            for name in all_authors:
+                score = fuzz.partial_ratio(
+                    resolved_author.lower(), name.lower()
+                )
+                if score > best_score:
+                    best_score = score
+                    best_match = name
+            if best_score >= fuzzy_threshold:
+                if best_match != resolved_author:
+                    console.print(
+                        f"  [dim]Author \"{resolved_author}\" → "
+                        f"\"{best_match}\" (score: {best_score})[/dim]"
+                    )
+                resolved_author = best_match
+
     filters = build_search_filters(
-        tags=tag if tag else None,
-        author=author,
+        tags=resolved_tags,
+        author=resolved_author,
         field=field,
         year=year,
         limit=limit,
@@ -231,6 +302,8 @@ def search(
 
     if not results:
         console.print("[dim]No papers matched your query.[/dim]")
+        if fuzzy:
+            console.print("[dim]Try --no-fuzzy for exact matching, or lower --fuzzy-threshold.[/dim]")
         raise typer.Exit()
 
     if json_output:
