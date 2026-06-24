@@ -274,3 +274,131 @@ class TestFuzzySearch:
             )
 
         assert "No papers matched" in result.stdout
+
+
+class TestBibtexCommand:
+    """BibTeX reference generation commands."""
+
+    def test_bibtex_single_paper(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """``bibtex <id>`` prints a BibTeX entry for the paper."""
+        db_path = tmp_path / "bibtex_test.db"
+
+        # Add a paper first.
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        # Now generate BibTeX for it.
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            result = runner.invoke(
+                app, ["bibtex", "1"], catch_exceptions=False
+            )
+
+        assert result.exit_code == 0, f"stderr: {result.stderr}"
+        assert "@article" in result.stdout
+        assert mock_tags.title in result.stdout
+
+    def test_bibtex_with_output_file(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """``bibtex <id> --output ref.bib`` writes to a file."""
+        db_path = tmp_path / "bibtex_file_test.db"
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        out = tmp_path / "ref.bib"
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            runner.invoke(
+                app, ["bibtex", "1", "--output", str(out)],
+                catch_exceptions=False,
+            )
+
+        assert out.read_text().startswith("@article")
+
+    def test_bibtex_nonexistent_paper(self, runner: CliRunner, tmp_path: Path) -> None:
+        """``bibtex <bad-id>`` exits with an error."""
+        db_path = tmp_path / "bibtex_empty.db"
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            result = runner.invoke(app, ["bibtex", "9999"])
+        assert result.exit_code == 1
+        assert "No paper found" in result.stdout
+
+    def test_search_bibtex_flag(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """``search --bibtex`` outputs BibTeX for matching papers."""
+        db_path = tmp_path / "search_bibtex_test.db"
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            result = runner.invoke(
+                app, ["search", "--bibtex", "--no-fuzzy"],
+                catch_exceptions=False,
+            )
+
+        assert result.exit_code == 0, f"stderr: {result.stderr}"
+        assert "@article" in result.stdout
+
+    def test_list_bibtex_flag(
+        self, runner: CliRunner, sample_pdf: Path, mock_tags: PaperTags, tmp_path: Path
+    ) -> None:
+        """``list --bibtex`` outputs BibTeX for all papers."""
+        db_path = tmp_path / "list_bibtex_test.db"
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ), patch(
+            "paper_aggregator.cli.commands.app_settings.pdf_storage_path",
+            tmp_path / "pdfs",
+        ), patch(
+            "paper_aggregator.cli.commands.tag_paper",
+            return_value=mock_tags,
+        ):
+            runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
+
+        with patch(
+            "paper_aggregator.cli.commands.app_settings.db_path", db_path
+        ):
+            result = runner.invoke(
+                app, ["list-papers", "--bibtex"],
+                catch_exceptions=False,
+            )
+
+        assert result.exit_code == 0, f"stderr: {result.stderr}"
+        assert "@article" in result.stdout
