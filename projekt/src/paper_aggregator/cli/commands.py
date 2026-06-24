@@ -20,6 +20,7 @@ from paper_aggregator.domain.ingestor import (
     extract_text,
     validate_url,
 )
+from paper_aggregator.domain.bibtex import format_bibtex
 from paper_aggregator.domain.models import PaperTags
 from paper_aggregator.domain.search import build_search_filters
 from paper_aggregator.domain.tagger import tag_paper, truncate_text
@@ -211,6 +212,8 @@ def search(
     year: str | None = typer.Option(None, "--year", help="Filter by year (YYYY or YYYY-YYYY)."),
     limit: int = typer.Option(50, "--limit", "-n", help="Cap results."),
     json_output: bool = typer.Option(False, "--json", help="Output results as JSON."),
+    bibtex: bool = typer.Option(False, "--bibtex", help="Output results as BibTeX entries."),
+    output: str | None = typer.Option(None, "--output", "-o", help="Write output to a file instead of stdout."),
     fuzzy: bool = typer.Option(True, "--fuzzy/--no-fuzzy", help="Fuzzy-match tags and authors (default: on)."),
     fuzzy_threshold: int = typer.Option(80, "--fuzzy-threshold", help="Minimum similarity score (0–100) for fuzzy matches."),
 ) -> None:
@@ -310,6 +313,10 @@ def search(
         print(json.dumps(results, indent=2))
         return
 
+    if bibtex:
+        _render_bibtex(results, output)
+        return
+
     _render_paper_table(results)
 
 
@@ -320,6 +327,8 @@ def search(
 def list_papers(
     tag: str | None = typer.Option(None, "--tag", help="Filter by a specific tag."),
     limit: int = typer.Option(50, "--limit", "-n", help="Cap results."),
+    bibtex: bool = typer.Option(False, "--bibtex", help="Output results as BibTeX entries."),
+    output: str | None = typer.Option(None, "--output", "-o", help="Write output to a file instead of stdout."),
 ) -> None:
     """List all papers in the database, newest first."""
     db: PaperRepository = _get_db()
@@ -328,6 +337,10 @@ def list_papers(
     if not results:
         console.print("[dim]No papers in the database.[/dim]")
         raise typer.Exit()
+
+    if bibtex:
+        _render_bibtex(results, output)
+        return
 
     _render_paper_table(results)
 
@@ -362,6 +375,37 @@ def show(id_or_url: str = typer.Argument(..., help="Paper ID or URL to display."
     console.print(f"[bold]Abstract:[/bold] {paper.get('abstract_summary', 'N/A')}")
     console.print(f"[bold]File:[/bold] {paper.get('file_path', 'N/A')}")
     console.print(f"[bold]Ingested at:[/bold] {paper.get('ingested_at', 'N/A')}")
+
+
+# ---------------------------------------------------------------------------
+# bibtex
+# ---------------------------------------------------------------------------
+@app.command()
+def bibtex(
+    id_or_url: str = typer.Argument(..., help="Paper ID or URL to generate a BibTeX entry for."),
+    entry_type: str = typer.Option("article", "--type", "-t", help="BibTeX entry type (article, inproceedings, etc.)."),
+    output: str | None = typer.Option(None, "--output", "-o", help="Write BibTeX to a file instead of stdout."),
+) -> None:
+    """Generate a BibTeX entry for a single paper."""
+    db: PaperRepository = _get_db()
+
+    paper = None
+    if id_or_url.isdigit():
+        paper = db.get_paper(int(id_or_url))
+    else:
+        paper = db.get_paper_by_url(id_or_url)
+
+    if paper is None:
+        console.print(f"[red]No paper found for:[/red] {id_or_url}")
+        raise typer.Exit(code=1)
+
+    bib = format_bibtex(paper, entry_type=entry_type)
+
+    if output:
+        Path(output).write_text(bib + "\n")
+        console.print(f"[green]✓[/green] BibTeX written to {output}")
+    else:
+        console.print(bib)
 
 
 # ---------------------------------------------------------------------------
@@ -536,3 +580,21 @@ def _render_paper_table(results: list[dict]) -> None:
         )
 
     console.print(table)
+
+
+def _render_bibtex(results: list[dict], output_path: str | None = None) -> None:
+    """Render a list of paper dicts as BibTeX entries."""
+    entries = []
+    for paper in results:
+        entries.append(format_bibtex(paper))
+
+    output = "\n\n".join(entries) + "\n"
+
+    if output_path:
+        Path(output_path).write_text(output)
+        console.print(
+            f"[green]✓[/green] {len(results)} BibTeX entries "
+            f"written to {output_path}"
+        )
+    else:
+        console.print(output)
