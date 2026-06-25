@@ -146,7 +146,8 @@ paper-aggregator tags                          # all tags with counts
 **Add this alias** to `~/.zshrc` (or `~/.bashrc`) - then Docker feels like a native install:
 
 ```bash
-alias paper='docker run --rm \
+export PAPER_AGGREGATOR_API_KEY="<Your LLM API key>"
+alias paper='docker run --rm -it \
   -e PAPER_AGGREGATOR_API_KEY \
   -v "${XDG_CONFIG_HOME:-$HOME/.config}/paper-aggregator:/config" \
   -v "${XDG_DATA_HOME:-$HOME/.local/share}/paper-aggregator:/data" \
@@ -165,7 +166,7 @@ paper list
 **One-off commands** (if you don't want the alias):
 
 ```bash
-docker run --rm -e PAPER_AGGREGATOR_API_KEY \
+docker run --rm -it -e PAPER_AGGREGATOR_API_KEY \
   -v "$HOME/.config/paper-aggregator:/config" \
   -v "$HOME/.local/share/paper-aggregator:/data" \
   paper-aggregator add https://arxiv.org/pdf/1706.03762.pdf
