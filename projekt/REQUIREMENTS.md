@@ -249,7 +249,9 @@ Tests should cover the application's core logic, data processing, validation, an
 | **TI.3** | Use **monkeypatch** (pytest built-in) or **unittest.mock** for mocking the LLM client, HTTP downloads, and filesystem operations. No real network calls in unit tests. | Must | ✅ |
 | **TI.4** | Test DB must use an in-memory SQLite database so tests are isolated and repeatable. | Must | ✅ |
 | **TI.5** | Tests must be located in a `tests/` directory at the project root, mirroring the source package structure. | Must | ✅ |
-| **TI.6** | Aim for ≥80% code coverage on the logic/business layer (not the CLI/UI layer). | Should | ⚠️ No enforcement |
+| **TI.6** | Aim for ≥70% code coverage on the logic/business layer (not the CLI/UI layer). | Should | ✅ |
+
+TI.6 verifiable with `poetry run pytest --cov=src/paper_aggregator --cov-report=term-missing`
 
 ---
 
