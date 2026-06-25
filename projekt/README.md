@@ -71,8 +71,14 @@ poetry install --only main
 
 ### Docker
 
+build your own
 ```bash
 docker build -t paper-aggregator .
+```
+
+or download `.tar` and load
+```bash
+docker load -i paper-aggregator.tar
 ```
 
 ## Quick Start
