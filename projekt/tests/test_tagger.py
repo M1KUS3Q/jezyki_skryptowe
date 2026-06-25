@@ -97,17 +97,12 @@ class TestTagPaper:
         with pytest.raises(ValueError, match="Failed to parse LLM response"):
             tag_paper("text", client=mock_client, max_retries=0)
 
-    def test_raises_when_no_api_key_and_no_client(self) -> None:
-        # Ensure the settings singleton has no key for this test.
+    def test_raises_when_no_api_key_and_no_client(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from paper_aggregator.config.settings import settings
 
-        old_key = settings.api_key
-        settings.api_key = ""
-        try:
-            with pytest.raises(ValueError, match="No API key configured"):
-                tag_paper("text")
-        finally:
-            settings.api_key = old_key
+        monkeypatch.setattr(settings, "api_key", "")
+        with pytest.raises(ValueError, match="No API key configured"):
+            tag_paper("text")
 
     def test_rejects_string_instead_of_list_for_authors(self) -> None:
         """T1.4 - authors as string instead of list -> rejected."""

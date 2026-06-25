@@ -226,7 +226,7 @@ Tests should cover the application's core logic, data processing, validation, an
 | **T1.5** | **Deduplication logic**: adding the same URL twice -> second call returns "already ingested" without modifying the DB; adding a different URL whose content hash matches an existing paper -> skip; `--force` re-ingests and overwrites. | Must | ⚠️ URL dedup only |
 | **T1.6** | **File-type detection**: `.pdf` extension -> handled as PDF; `.txt` -> handled as plain text; `.docx` / `.png` / other unsupported -> rejected with clear message. Content-Type header takes precedence over extension. | Must | ✅ |
 | **T1.7** | **Search query building**: `--tag` filters combine with AND; `--author` performs case-insensitive substring match; `--year` exact and range work correctly; no filters -> returns all papers; no matches -> empty table with info message. | Must | ✅ |
-| **T1.8** | **Config loading**: environment variable `PAPER_AGGREGATOR_API_KEY` read correctly; config file merged with env (env takes precedence); missing config file -> sensible defaults; invalid TOML -> clear error. | Must | ❌ |
+| **T1.8** | **Config loading**: environment variable `PAPER_AGGREGATOR_API_KEY` read correctly; config file merged with env (env takes precedence); missing config file -> sensible defaults; invalid TOML -> clear error. | Must | ✅ |
 | **T1.9** | **CRUD operations**: `list` returns newest-first; `show <id>` returns full details; `remove <id>` deletes paper + join-table rows; `tags` returns distinct tags with counts. | Must | ✅ |
 | **T1.10** | **Text truncation**: paper text longer than `max_context_tokens` -> truncated correctly with a warning emitted; text shorter -> sent as-is. | Should | ✅ |
 
@@ -275,7 +275,7 @@ Documentation is part of the project grading (10%). The codebase must be self-do
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
 | **DOC1** | **`README.md`** at the repo root covering: project description, features, dependencies, how to install, how to run, how to test, configuration reference (env vars + config file), and a link to this REQUIREMENTS.md. | Must | ✅ |
-| **DOC2** | **User documentation**: a `docs/` directory or a section in README with walkthrough examples for `add`, `search`, `list`, `show`, `remove`, `tags`, `init`, and `config`. | Should | ❌ |
+| **DOC2** | **User documentation**: a `docs/` directory or a section in README with walkthrough examples for `add`, `search`, `list`, `show`, `remove`, `tags`, `init`, and `config`. | Should | ✅ |
 | **DOC3** | **Technical documentation**: module-level docstrings describing purpose and public API; class/method docstrings for non-obvious logic. | Should | ✅ |
 | **DOC4** | **Architecture overview**: a brief section in README (or a linked `ARCHITECTURE.md`) describing the layered structure - CLI layer -> command handlers -> domain services -> repositories -> DB / LLM client. | Should | ✅ |
 | **DOC5** | **Inline code comments**: document *why*, not *what* - explain design choices, workarounds, and non-obvious behavior. | Should | ✅ |
