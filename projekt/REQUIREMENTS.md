@@ -260,10 +260,10 @@ The project must provide tooling that lets a third party install and run the app
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
 | **D1** | **`pyproject.toml` as build artifact**: the project must be installable via `pip install .` (or `poetry install`) with all dependencies declared. | Must | ✅ |
-| **D2** | **Docker image**: provide a `Dockerfile` that builds a runnable container with the app and all dependencies. The entrypoint should be the CLI (`paper-aggregator`). Document how to mount the config directory and `pdfs/` folder as volumes. | Should | ❌ |
+| **D2** | **Docker image**: provide a `Dockerfile` that builds a runnable container with the app and all dependencies. The entrypoint should be the CLI (`paper-aggregator`). Document how to mount the config directory and `pdfs/` folder as volumes. | Should | ✅ |
 | **D3** | **PyInstaller / standalone bundle**: produce a single-file executable via PyInstaller (or similar) so the tool can be used without a Python installation. | Could | ❌ |
 | **D4** | **Custom setup script**: a `setup.sh` or `install.sh` that creates a virtual environment, installs dependencies, and optionally symlinks the entry point into `~/.local/bin`. | Could | ❌ |
-| **D5** | At least **one** deployment method (beyond bare `poetry install`) must be documented and working. | Must | ⚠️ `pip install` only |
+| **D5** | At least **one** deployment method (beyond bare `poetry install`) must be documented and working. | Must | ✅ Docker |
 | **D6** | The deployment artifact must handle the `PAPER_AGGREGATOR_API_KEY` env var being set at runtime (not baked into the image/bundle). | Must | ✅ |
 
 ---
