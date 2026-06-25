@@ -1,4 +1,4 @@
-"""Unit tests for paper ingestion — URL validation, file-type detection,
+"""Unit tests for paper ingestion - URL validation, file-type detection,
 and PDF text extraction."""
 
 import pytest
@@ -11,7 +11,7 @@ from paper_aggregator.domain.ingestor import (
 
 
 class TestValidateURL:
-    """F1.2 / T1.1 — URL validation."""
+    """F1.2 / T1.1 - URL validation."""
 
     def test_valid_https_url(self) -> None:
         assert validate_url("https://example.com/paper.pdf") is True
@@ -39,7 +39,7 @@ class TestValidateURL:
 
 
 class TestDetectFileType:
-    """T1.6 — file-type detection from Content-Type and extension."""
+    """T1.6 - file-type detection from Content-Type and extension."""
 
     def test_pdf_from_content_type(self) -> None:
         assert detect_file_type("application/pdf", "https://example.com/file") == "pdf"
@@ -70,7 +70,7 @@ class TestDetectFileType:
 
 
 class TestExtractText:
-    """T1.2 / T2.4 — PDF text extraction."""
+    """T1.2 / T2.4 - PDF text extraction."""
 
     def test_extracts_text_from_valid_pdf(self, sample_pdf_path: str) -> None:
         text = extract_text(sample_pdf_path)

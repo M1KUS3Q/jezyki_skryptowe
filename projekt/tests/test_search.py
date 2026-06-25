@@ -8,7 +8,7 @@ from paper_aggregator.domain.search import (
 
 
 class TestParseYearFilter:
-    """T1.7 — year filter parsing."""
+    """T1.7 - year filter parsing."""
 
     def test_single_year(self) -> None:
         assert parse_year_filter("2020") == (2020, 2020)
@@ -37,7 +37,7 @@ class TestParseYearFilter:
 
 
 class TestBuildSearchFilters:
-    """T1.7 — filter assembly from CLI inputs."""
+    """T1.7 - filter assembly from CLI inputs."""
 
     def test_empty_filters(self) -> None:
         f = build_search_filters()

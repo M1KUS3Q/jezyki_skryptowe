@@ -16,7 +16,7 @@ from paper_aggregator.config.settings import settings
 
 pytestmark = pytest.mark.skipif(
     not settings.api_key,
-    reason="PAPER_AGGREGATOR_API_KEY not set — set it in .env to run integration tests",
+    reason="PAPER_AGGREGATOR_API_KEY not set - set it in .env to run integration tests",
 )
 
 
@@ -39,7 +39,7 @@ parallelizable and requiring significantly less time to train.
 
 
 class TestRealTagging:
-    """T2.1 — end-to-end tagging with a real LLM."""
+    """T2.1 - end-to-end tagging with a real LLM."""
 
     def test_tags_well_known_paper(self) -> None:
         from paper_aggregator.domain.tagger import tag_paper
@@ -62,7 +62,7 @@ class TestRealTagging:
         assert isinstance(result.abstract_summary, str)
         assert len(result.abstract_summary) > 20
 
-        # Semantic checks — the LLM should produce a reasonable title.
+        # Semantic checks - the LLM should produce a reasonable title.
         title_lower = result.title.lower()
         assert "attention" in title_lower or "transformer" in title_lower
 
@@ -71,7 +71,7 @@ class TestRealTagging:
 
 
 class TestEndToEndPipeline:
-    """T2.1 — complete ingestion pipeline with real LLM, local DB."""
+    """T2.1 - complete ingestion pipeline with real LLM, local DB."""
 
     def test_full_add_flow(self, tmp_path, db_repo) -> None:  # noqa: ARG002
         import fitz

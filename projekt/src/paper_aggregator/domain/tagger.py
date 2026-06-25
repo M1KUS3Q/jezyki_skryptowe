@@ -10,7 +10,7 @@ from openai import OpenAI
 from paper_aggregator.config.settings import settings
 from paper_aggregator.domain.models import PaperTags
 
-# System prompt — the JSON schema is enforced by the API's structured-output
+# System prompt - the JSON schema is enforced by the API's structured-output
 # mode, so the prompt only needs to describe the *semantics* of each field.
 _SYSTEM_PROMPT = """\
 You are a research librarian assistant. Given the text of an academic paper, \

@@ -63,7 +63,7 @@ def detect_file_type(content_type: str | None, url: str) -> str:
 def download_pdf(url: str, dest_path: Path) -> tuple[str, str | None]:
     """Download a file from *url* into *dest_path*.
 
-    Returns a ``(content_hash, content_type)`` tuple — *content_type* is
+    Returns a ``(content_hash, content_type)`` tuple - *content_type* is
     the value of the ``Content-Type`` response header (may be ``None``).
 
     Raises :class:`httpx.HTTPStatusError` when the response status is not 2xx,

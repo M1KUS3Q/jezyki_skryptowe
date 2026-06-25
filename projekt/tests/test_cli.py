@@ -201,7 +201,7 @@ class TestFuzzySearch:
         ):
             runner.invoke(app, ["add", str(sample_pdf)], catch_exceptions=False)
 
-        # Now search with a fuzzy tag — "deep learn" should match "deep learning".
+        # Now search with a fuzzy tag - "deep learn" should match "deep learning".
         with patch(
             "paper_aggregator.cli.commands.app_settings.db_path", db_path
         ), patch(
@@ -216,7 +216,7 @@ class TestFuzzySearch:
 
         assert result.exit_code == 0, f"stderr: {result.stderr}"
         # Title may be truncated in the table; check for the fuzzy match message.
-        assert 'deep learn" → "deep learning"' in result.stdout
+        assert 'deep learn" -> "deep learning"' in result.stdout
         assert "(1)" in result.stdout  # paper count in table title
 
     def test_fuzzy_tag_no_match(

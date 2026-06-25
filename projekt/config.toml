@@ -2,7 +2,7 @@
 # Copy this to ~/.config/paper-aggregator/config.toml and edit as needed.
 #
 # Environment variables take precedence over this file:
-#   PAPER_AGGREGATOR_API_KEY  — your API key (always kept in env, never in this file)
+#   PAPER_AGGREGATOR_API_KEY  - your API key (always kept in env, never in this file)
 
 # OpenAI-compatible API endpoint. Examples:
 #   https://api.openai.com/v1               (OpenAI)
@@ -10,7 +10,7 @@
 #   https://api.mistral.ai/v1               (Mistral via compatible proxy)
 api_base_url = "https://api.openai.com/v1"
 
-# Default LLM model — use any model your endpoint supports.
+# Default LLM model - use any model your endpoint supports.
 model = "gpt-4o-mini"
 
 # Maximum characters of paper text sent to the LLM.

@@ -1,4 +1,4 @@
-"""Integration tests for PaperRepository — CRUD, search, and tag management.
+"""Integration tests for PaperRepository - CRUD, search, and tag management.
 
 These tests use a temporary on-disk SQLite database so foreign-key pragmas
 and WAL mode work identically to the production path.
@@ -29,7 +29,7 @@ def _add_sample_paper(repo: PaperRepository, url: str, title: str = "Test Paper"
 
 
 class TestPaperExists:
-    """T1.5 — deduplication checks."""
+    """T1.5 - deduplication checks."""
 
     def test_new_url_does_not_exist(self, db_repo: PaperRepository) -> None:
         assert db_repo.paper_exists("https://example.com/new.pdf") is False
@@ -45,7 +45,7 @@ class TestPaperExists:
 
 
 class TestAddAndRetrieve:
-    """T1.9 — basic CRUD."""
+    """T1.9 - basic CRUD."""
 
     def test_add_paper_returns_valid_id(self, db_repo: PaperRepository) -> None:
         pid = _add_sample_paper(db_repo, "https://example.com/1.pdf")
@@ -73,7 +73,7 @@ class TestAddAndRetrieve:
 
 
 class TestRemove:
-    """T1.9 — remove operations."""
+    """T1.9 - remove operations."""
 
     def test_remove_existing_paper(self, db_repo: PaperRepository) -> None:
         pid = _add_sample_paper(db_repo, "https://example.com/to-remove.pdf")
@@ -90,7 +90,7 @@ class TestRemove:
 
 
 class TestListAll:
-    """T1.9 — listing."""
+    """T1.9 - listing."""
 
     def test_list_returns_newest_first(self, db_repo: PaperRepository) -> None:
         _add_sample_paper(db_repo, "https://example.com/old.pdf", "Old Paper")
@@ -117,7 +117,7 @@ class TestListAll:
 
 
 class TestSearch:
-    """T1.7 — search query building."""
+    """T1.7 - search query building."""
 
     def test_search_by_single_tag(self, db_repo: PaperRepository) -> None:
         _add_sample_paper(db_repo, "https://example.com/s1.pdf", "NLP Paper")
@@ -138,7 +138,7 @@ class TestSearch:
             methodology=["deep learning"],
             abstract_summary="Both tags.",
         )
-        # Paper has both tags → should match AND
+        # Paper has both tags -> should match AND
         results = db_repo.search_papers(tags=["transformers", "attention"])
         assert any("Multi-tag Paper" == r["title"] for r in results)
 
@@ -169,7 +169,7 @@ class TestSearch:
 
 
 class TestListTags:
-    """T1.9 — tag listing with counts."""
+    """T1.9 - tag listing with counts."""
 
     def test_tags_with_counts(self, db_repo: PaperRepository) -> None:
         _add_sample_paper(db_repo, "https://example.com/tags1.pdf")

@@ -1,7 +1,7 @@
 """BibTeX reference generation.
 
 Produces ``.bib`` entries from paper records stored in the database.
-No dependencies on CLI or network — pure string formatting.
+No dependencies on CLI or network - pure string formatting.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def _first_title_word(title: str) -> str:
     # Normalise to ASCII first so accented letters (Ü, é, etc.) are
     # decomposed before we split on word boundaries.
     clean = _to_ascii(title)
-    # Drop punctuation so "Attention: Is" → ["Attention", "Is"]
+    # Drop punctuation so "Attention: Is" -> ["Attention", "Is"]
     words = re.findall(r"[A-Za-z0-9]+", clean)
     if not words:
         return "untitled"
@@ -38,7 +38,7 @@ def _first_title_word(title: str) -> str:
     for w in words:
         if w.lower() not in _STOPWORDS:
             return w.lower()
-    # All words are stopwords — use the first one anyway.
+    # All words are stopwords - use the first one anyway.
     return words[0].lower()
 
 
@@ -97,7 +97,7 @@ def format_bibtex(paper: dict, *, entry_type: str = "article") -> str:
         Expected keys: ``title``, ``authors``, ``year``, ``url``,
         ``abstract_summary``.
     entry_type:
-        BibTeX entry type — usually ``"article"`` or ``"inproceedings"``.
+        BibTeX entry type - usually ``"article"`` or ``"inproceedings"``.
 
     Returns
     -------
@@ -123,7 +123,7 @@ def format_bibtex(paper: dict, *, entry_type: str = "article") -> str:
             author_names.append(f"{parts[i]}, {parts[i + 1]}")
             i += 2
         else:
-            # Odd number of parts — treat as single name.
+            # Odd number of parts - treat as single name.
             author_names.append(parts[i])
             i += 1
     bibtex_authors = " and ".join(author_names)

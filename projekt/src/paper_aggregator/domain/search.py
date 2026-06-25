@@ -21,8 +21,8 @@ class SearchFilters:
 def parse_year_filter(year_spec: str) -> tuple[int | None, int | None]:
     """Parse a year filter string.
 
-    ``"2020"`` → ``(2020, 2020)``
-    ``"2020-2023"`` → ``(2020, 2023)``
+    ``"2020"`` -> ``(2020, 2020)``
+    ``"2020-2023"`` -> ``(2020, 2023)``
 
     Returns ``(None, None)`` for any input that cannot be parsed as a
     valid year or year range.

@@ -1,4 +1,4 @@
-"""Unit tests for LLM tagging — truncation, prompt building, and tag parsing."""
+"""Unit tests for LLM tagging - truncation, prompt building, and tag parsing."""
 
 import json
 
@@ -13,7 +13,7 @@ from paper_aggregator.domain.tagger import (
 
 
 class TestTruncateText:
-    """T1.10 — text truncation."""
+    """T1.10 - text truncation."""
 
     def test_no_truncation_when_under_limit(self) -> None:
         text, was_truncated = truncate_text("short text", 100)
@@ -47,7 +47,7 @@ class TestBuildTaggingPrompt:
 
 
 class TestTagPaper:
-    """T1.3 / T1.4 — LLM response parsing and validation."""
+    """T1.3 / T1.4 - LLM response parsing and validation."""
 
     def test_parses_valid_response(
         self,
@@ -110,7 +110,7 @@ class TestTagPaper:
             settings.api_key = old_key
 
     def test_rejects_string_instead_of_list_for_authors(self) -> None:
-        """T1.4 — authors as string instead of list → rejected."""
+        """T1.4 - authors as string instead of list -> rejected."""
         from unittest.mock import MagicMock
 
         mock_client = MagicMock()
@@ -132,7 +132,7 @@ class TestTagPaper:
             tag_paper("text", client=mock_client, max_retries=0)
 
     def test_rejects_missing_required_field(self) -> None:
-        """T1.3 — missing required field → rejected."""
+        """T1.3 - missing required field -> rejected."""
         from unittest.mock import MagicMock
 
         mock_client = MagicMock()

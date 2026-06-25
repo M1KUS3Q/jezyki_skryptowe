@@ -64,7 +64,7 @@ def add(
     for url in urls:
         console.print(f"\n[bold]Processing:[/bold] {url}")
 
-        # ── 1. Determine source: local file or remote URL ──────────────────
+        #  1. Determine source: local file or remote URL 
         local_path: Path | None = None
         if Path(url).is_file():
             local_path = Path(url).resolve()
@@ -77,16 +77,16 @@ def add(
         else:
             db_url = url
 
-        # ── 2. Check for duplicates ────────────────────────────────────────
+        #  2. Check for duplicates 
         if db.paper_exists(db_url):
             if force:
-                console.print("  [yellow]⚠[/yellow] Already ingested — re-ingesting (--force).")
+                console.print("  [yellow]⚠[/yellow] Already ingested - re-ingesting (--force).")
                 db.remove_paper_by_url(db_url)
             else:
                 console.print("  [yellow]⚠[/yellow] Already ingested. Use --force to re-ingest.")
                 continue
 
-        # ── 3. Obtain the file (download or use local) ──────────────────────
+        #  3. Obtain the file (download or use local) 
         if local_path is not None:
             tmp_path = local_path
             content_type = None
@@ -98,7 +98,7 @@ def add(
                     f"  [red]✗[/red] Permission denied: {local_path}\n"
                     "  [dim]macOS blocks Python from reading files in "
                     "~/Downloads, ~/Desktop, and ~/Documents.\n"
-                    "  Workaround: move the file somewhere else first —\n"
+                    "  Workaround: move the file somewhere else first -\n"
                     f"    [bold]mv '{local_path}' /tmp/in.pdf && "
                     f"paper-aggregator add /tmp/in.pdf[/bold][/dim]"
                 )
@@ -112,7 +112,7 @@ def add(
                 console.print(f"  [red]✗[/red] Download failed: {exc}")
                 continue
 
-        # ── 4. Detect file type and extract text ───────────────────────────
+        #  4. Detect file type and extract text ─
         try:
             file_type = detect_file_type(content_type, db_url)
         except ValueError as exc:
@@ -140,7 +140,7 @@ def add(
 
         console.print(f"  [green]✓[/green] Extracted {len(text)} characters.")
 
-        # ── 5. Truncate and tag ────────────────────────────────────────────
+        #  5. Truncate and tag 
         truncated, was_truncated = truncate_text(text, settings.max_context_chars)
         if was_truncated:
             console.print(
@@ -156,7 +156,7 @@ def add(
                 tmp_path.unlink(missing_ok=True)
             continue
 
-        console.print(f"  [green]✓[/green] Tagged — title: {tags.title!r}")
+        console.print(f"  [green]✓[/green] Tagged - title: {tags.title!r}")
 
         if dry_run:
             console.print_json(tags.model_dump_json())
@@ -164,7 +164,7 @@ def add(
                 tmp_path.unlink(missing_ok=True)
             continue
 
-        # ── 6. Store in DB ─────────────────────────────────────────────────
+        #  6. Store in DB ─
         try:
             paper_id = db.add_paper(
                 db_url,
@@ -189,7 +189,7 @@ def add(
                 tmp_path.unlink(missing_ok=True)
             continue
 
-        # ── 7. Store PDF in the library folder ─────────────────────────────
+        #  7. Store PDF in the library folder ─
         if local_path:
             # Copy local file into the managed pdfs/ directory.
             final_path = pdf_dir / f"{paper_id}.pdf"
@@ -219,7 +219,7 @@ def search(
 ) -> None:
     """Search papers by tags, author, field, or year.
 
-    Tags and authors are fuzzy-matched by default — e.g. "transformer"
+    Tags and authors are fuzzy-matched by default - e.g. "transformer"
     will find papers tagged "transformers".  Use ``--no-fuzzy`` for
     exact matching only.
     """
@@ -232,7 +232,7 @@ def search(
         existing_tags = db.list_tags()
         all_tag_names = [t["name"] for t in existing_tags]
 
-        # ── Fuzzy-expand tag queries ──────────────────────────────────
+        #  Fuzzy-expand tag queries 
         if resolved_tags:
             expanded: list[str] = []
             for query in resolved_tags:
@@ -247,12 +247,12 @@ def search(
                 if best_score >= fuzzy_threshold:
                     if best_match != query:
                         console.print(
-                            f"  [dim]Tag \"{query}\" → \"{best_match}\" "
+                            f"  [dim]Tag \"{query}\" -> \"{best_match}\" "
                             f"(score: {best_score})[/dim]"
                         )
                     expanded.append(best_match)
                 else:
-                    # No close match — keep the original (may yield no results).
+                    # No close match - keep the original (may yield no results).
                     console.print(
                         f"  [yellow]No close tag match for \"{query}\" "
                         f"(best: \"{best_match}\", score: {best_score})[/yellow]"
@@ -260,7 +260,7 @@ def search(
                     expanded.append(query)
             resolved_tags = expanded
 
-        # ── Fuzzy-expand author query ──────────────────────────────────
+        #  Fuzzy-expand author query 
         if resolved_author:
             from paper_aggregator.db.repository import PaperRepository as PR
             # Get all distinct author names from the DB.
@@ -282,7 +282,7 @@ def search(
             if best_score >= fuzzy_threshold:
                 if best_match != resolved_author:
                     console.print(
-                        f"  [dim]Author \"{resolved_author}\" → "
+                        f"  [dim]Author \"{resolved_author}\" -> "
                         f"\"{best_match}\" (score: {best_score})[/dim]"
                     )
                 resolved_author = best_match
