@@ -17,7 +17,7 @@ tests/
 .vscode/
 .idea/
 
-# Docs (except README — needed by pyproject.toml build)
+# Docs (except README - needed by pyproject.toml build)
 REQUIREMENTS.md
 
 # Config samples (user provides their own)
