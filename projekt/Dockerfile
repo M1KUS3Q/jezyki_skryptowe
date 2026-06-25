@@ -1,4 +1,4 @@
-# ── Builder stage ──────────────────────────────────────────────
+# -- Builder stage --
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
@@ -16,7 +16,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.in-project true \
     && poetry install --only main --no-interaction --no-ansi --no-root
 
-# ── Runtime stage ──────────────────────────────────────────────
+# -- Runtime stage --
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -35,7 +35,7 @@ COPY src/ ./src/
 COPY pyproject.toml README.md ./
 RUN /app/.venv/bin/pip install --no-deps -e . > /dev/null
 
-# ── Runtime configuration ──────────────────────────────────────
+# -- Runtime configuration --
 
 # XDG paths point into the mountable volumes:
 #   /config   → config.toml  (XDG_CONFIG_HOME)

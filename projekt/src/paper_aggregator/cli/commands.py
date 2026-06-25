@@ -112,7 +112,7 @@ def add(
                 console.print(f"  [red]✗[/red] Download failed: {exc}")
                 continue
 
-        #  4. Detect file type and extract text ─
+        #  4. Detect file type and extract text
         try:
             file_type = detect_file_type(content_type, db_url)
         except ValueError as exc:
@@ -164,7 +164,7 @@ def add(
                 tmp_path.unlink(missing_ok=True)
             continue
 
-        #  6. Store in DB ─
+        #  6. Store in DB
         try:
             paper_id = db.add_paper(
                 db_url,
@@ -189,7 +189,7 @@ def add(
                 tmp_path.unlink(missing_ok=True)
             continue
 
-        #  7. Store PDF in the library folder ─
+        #  7. Store PDF in the library folder
         if local_path:
             # Copy local file into the managed pdfs/ directory.
             final_path = pdf_dir / f"{paper_id}.pdf"
