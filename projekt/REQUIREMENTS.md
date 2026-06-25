@@ -274,10 +274,10 @@ Documentation is part of the project grading (10%). The codebase must be self-do
 
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
-| **DOC1** | **`README.md`** at the repo root covering: project description, features, dependencies, how to install, how to run, how to test, configuration reference (env vars + config file), and a link to this REQUIREMENTS.md. | Must | ❌ |
+| **DOC1** | **`README.md`** at the repo root covering: project description, features, dependencies, how to install, how to run, how to test, configuration reference (env vars + config file), and a link to this REQUIREMENTS.md. | Must | ✅ |
 | **DOC2** | **User documentation**: a `docs/` directory or a section in README with walkthrough examples for `add`, `search`, `list`, `show`, `remove`, `tags`, `init`, and `config`. | Should | ❌ |
 | **DOC3** | **Technical documentation**: module-level docstrings describing purpose and public API; class/method docstrings for non-obvious logic. | Should | ✅ |
-| **DOC4** | **Architecture overview**: a brief section in README (or a linked `ARCHITECTURE.md`) describing the layered structure - CLI layer -> command handlers -> domain services -> repositories -> DB / LLM client. | Should | ❌ |
+| **DOC4** | **Architecture overview**: a brief section in README (or a linked `ARCHITECTURE.md`) describing the layered structure - CLI layer -> command handlers -> domain services -> repositories -> DB / LLM client. | Should | ✅ |
 | **DOC5** | **Inline code comments**: document *why*, not *what* - explain design choices, workarounds, and non-obvious behavior. | Should | ✅ |
 
 ---
